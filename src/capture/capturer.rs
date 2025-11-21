@@ -2,9 +2,10 @@ use crate::capture::pipewire::Pipewire;
 use thiserror::Error;
 
 pub trait Capturer {
-    fn capture() -> Result<Vec<f32>, Error>;
-    fn init(&mut self) -> Result<(), Error>;
+    fn capture(&self) -> Result<Vec<f32>, Error>;
+    fn init(&self) -> Result<(), Error>;
     fn channels(&self) -> usize;
+    fn rate(&self) -> usize;
 }
 
 pub fn default_capturer() -> impl Capturer {

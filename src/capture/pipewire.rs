@@ -5,8 +5,10 @@ use pipewire as pw;
 use pw::spa::param::format_utils;
 use pw::{properties::properties, spa};
 use spa::param::format::{MediaSubtype, MediaType};
+use spa::pod::Pod;
 use std::mem;
 use std::sync::{Arc, RwLock};
+use std::thread;
 // use spa::param::format::{MediaSubtype, MediaType};
 // use spa::param::format_utils;
 
@@ -22,107 +24,150 @@ struct UserData {
 }
 
 impl Capturer for Pipewire {
-    fn capture() -> Result<Vec<f32>, Error> {
-        Ok(Vec::new())
+    fn capture(&self) -> Result<Vec<f32>, Error> {
+        let res = self.buffer.read().unwrap().to_owned();
+        Ok(res)
     }
 
-    fn init(&mut self) -> Result<(), Error> {
-        // init pipewire
-        pipewire::init();
-
-        let mainloop = pw::main_loop::MainLoopRc::new(None)?;
-        let context = pw::context::ContextRc::new(&mainloop, None)?;
-        let core = context.connect_rc(None)?;
-
-        let data = UserData {
-            format: Default::default(),
-        };
-
-        let props = properties! {
-            *pw::keys::MEDIA_TYPE => "Audio",
-            *pw::keys::MEDIA_CATEGORY => "Capture",
-            *pw::keys::MEDIA_ROLE => "Music",
-            *pw::keys::STREAM_CAPTURE_SINK => "true",
-
-        };
-
-        let stream = pw::stream::StreamBox::new(&core, "audio-capture", props)?;
-        let buffer_clone = Arc::clone(&self.buffer);
-
-        let _listener = stream
-            .add_local_listener_with_user_data(data)
-            .param_changed(|_, user_data, id, param| {
-                let Some(param) = param else {
-                    return;
-                };
-
-                if id != pw::spa::param::ParamType::Format.as_raw() {
-                    return;
-                }
-
-                let (media_type, media_subtype) = match format_utils::parse_format(param) {
-                    Ok(v) => v,
-                    Err(_) => return,
-                };
-
-                if media_type != MediaType::Audio || media_subtype != MediaSubtype::Raw {
-                    return;
-                }
-
-                user_data
-                    .format
-                    .parse(param)
-                    .expect("Failed to parse param on the param_changed event");
-            })
-            .process(move |stream, user_data| {
-                let mut buffer = stream.dequeue_buffer().unwrap();
-                let datas = buffer.datas_mut();
-                if datas.is_empty() {
-                    return;
-                }
-
-                let data = &mut datas[0];
-                let channels = user_data.format.channels() as usize;
-                let size = data.chunk().size() as usize;
-
-                let type_size = mem::size_of::<f32>();
-                let step = type_size * channels;
-
-                buffer_clone.write().unwrap().resize(size / step, 0.0);
-
-                if let Some(samples) = data.data() {
-                    // let mut start = 0;
-                    // let mut end = start + type_size;
-                    // while end < size {
-                    //     let index = start / step;
-                    //     let mut sum = 0.0;
-                    //     for _ in 0..channels {
-                    //         let chan = &samples[start..end];
-                    //         let sample = f32::from_le_bytes(chan.try_into().unwrap());
-                    //         sum += sample;
-                    //         start += type_size;
-                    //         end += type_size;
-                    //     }
-                    //     let avg = sum / channels as f32;
-                    //     buffer_clone.write().unwrap().insert(index, avg);
-                    // }
-                    for start in (0..size).step_by(step) {
-                        let end = start + step;
-                        let sample = &samples[start..end];
-                        let chans = cast_slice(sample);
-                        let avg = chans.iter().sum::<f32>() / channels as f32;
-                        buffer_clone.write().unwrap().insert(start / step, avg);
-                    }
-                }
-            })
-            .register()?;
-
+    fn init(&self) -> Result<(), Error> {
+        let buffer = Arc::clone(&self.buffer);
+        let data = Arc::clone(&self.user_data);
+        thread::spawn(move || pw_thread(buffer, data));
         Ok(())
     }
 
     fn channels(&self) -> usize {
         self.user_data.read().unwrap().format.channels() as usize
     }
+
+    fn rate(&self) -> usize {
+        self.user_data.read().unwrap().format.rate() as usize
+    }
+}
+
+fn pw_thread(
+    buffer_clone: Arc<RwLock<Vec<f32>>>,
+    data: Arc<RwLock<UserData>>,
+) -> Result<(), Error> {
+    // init pipewire
+    pipewire::init();
+
+    let mainloop = pw::main_loop::MainLoopRc::new(None)?;
+    let context = pw::context::ContextRc::new(&mainloop, None)?;
+    let core = context.connect_rc(None)?;
+
+    // let data = Arc::clone(&cap_data);
+
+    let props = properties! {
+        *pw::keys::MEDIA_TYPE => "Audio",
+        *pw::keys::MEDIA_CATEGORY => "Capture",
+        *pw::keys::MEDIA_ROLE => "Music",
+        *pw::keys::STREAM_CAPTURE_SINK => "true",
+
+    };
+
+    let stream = pw::stream::StreamBox::new(&core, "audio-capture", props)?;
+    // let buffer_clone = Arc::clone(&cap_buffer);
+
+    let _listener = stream
+        .add_local_listener_with_user_data(data)
+        .param_changed(|_, user_data, id, param| {
+            let Some(param) = param else {
+                return;
+            };
+
+            if id != pw::spa::param::ParamType::Format.as_raw() {
+                return;
+            }
+
+            let (media_type, media_subtype) = match format_utils::parse_format(param) {
+                Ok(v) => v,
+                Err(_) => return,
+            };
+
+            if media_type != MediaType::Audio || media_subtype != MediaSubtype::Raw {
+                return;
+            }
+
+            user_data
+                .write()
+                .unwrap()
+                .format
+                .parse(param)
+                .expect("Failed to parse param on the param_changed event");
+        })
+        .process(move |stream, user_data| {
+            let mut buffer = stream.dequeue_buffer().unwrap();
+            let datas = buffer.datas_mut();
+            if datas.is_empty() {
+                return;
+            }
+
+            let data = &mut datas[0];
+            let channels = user_data.read().unwrap().format.channels() as usize;
+            let size = data.chunk().size() as usize;
+
+            let type_size = mem::size_of::<f32>();
+            let step = type_size * channels;
+
+            buffer_clone.write().unwrap().resize(size / step, 0.0);
+
+            if let Some(samples) = data.data() {
+                // let mut start = 0;
+                // let mut end = start + type_size;
+                // while end < size {
+                //     let index = start / step;
+                //     let mut sum = 0.0;
+                //     for _ in 0..channels {
+                //         let chan = &samples[start..end];
+                //         let sample = f32::from_le_bytes(chan.try_into().unwrap());
+                //         sum += sample;
+                //         start += type_size;
+                //         end += type_size;
+                //     }
+                //     let avg = sum / channels as f32;
+                //     buffer_clone.write().unwrap().insert(index, avg);
+                // }
+                for start in (0..size).step_by(step) {
+                    let end = start + step;
+                    let sample = &samples[start..end];
+                    let chans = cast_slice(sample);
+                    let avg = chans.iter().sum::<f32>() / channels as f32;
+                    buffer_clone.write().unwrap().insert(start / step, avg);
+                }
+            }
+        })
+        .register()?;
+
+    let mut audio_info = spa::param::audio::AudioInfoRaw::new();
+    audio_info.set_format(spa::param::audio::AudioFormat::F32LE);
+    let obj = pw::spa::pod::Object {
+        type_: pw::spa::utils::SpaTypes::ObjectParamFormat.as_raw(),
+        id: pw::spa::param::ParamType::EnumFormat.as_raw(),
+        properties: audio_info.into(),
+    };
+    let values: Vec<u8> = pw::spa::pod::serialize::PodSerializer::serialize(
+        std::io::Cursor::new(Vec::new()),
+        &pw::spa::pod::Value::Object(obj),
+    )
+    .unwrap()
+    .0
+    .into_inner();
+
+    let mut params = [Pod::from_bytes(&values).unwrap()];
+
+    stream.connect(
+        spa::utils::Direction::Input,
+        None,
+        pw::stream::StreamFlags::AUTOCONNECT
+            | pw::stream::StreamFlags::MAP_BUFFERS
+            | pw::stream::StreamFlags::RT_PROCESS,
+        &mut params,
+    )?;
+
+    mainloop.run();
+
+    Ok(())
 }
 
 impl From<pipewire::Error> for Error {
