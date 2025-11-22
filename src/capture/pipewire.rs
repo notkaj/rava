@@ -25,8 +25,10 @@ struct UserData {
 
 impl Capturer for Pipewire {
     fn capture(&self) -> Result<Vec<f32>, Error> {
-        let res = self.buffer.read().unwrap().to_owned();
-        Ok(res)
+        match self.buffer.read() {
+            Ok(r) => Ok(r.to_owned()),
+            Err(_) => Err(Error::InternalError),
+        }
     }
 
     fn init(&self) -> Result<(), Error> {
@@ -180,9 +182,3 @@ impl From<pipewire::Error> for Error {
         }
     }
 }
-
-// impl Into<Error> for pipewire::Error {
-//     fn into(self) -> Error {
-//         Error::CreationFailed
-//     }
-// }

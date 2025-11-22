@@ -1,5 +1,6 @@
-use crate::capture::pipewire::Pipewire;
 use thiserror::Error;
+
+use crate::capture::pipewire::Pipewire;
 
 pub trait Capturer {
     fn capture(&self) -> Result<Vec<f32>, Error>;
@@ -8,8 +9,8 @@ pub trait Capturer {
     fn rate(&self) -> usize;
 }
 
-pub fn default_capturer() -> impl Capturer {
-    Pipewire::default()
+pub fn default_capturer() -> Box<dyn Capturer> {
+    Box::new(Pipewire::default())
 }
 
 #[derive(Error, Debug)]

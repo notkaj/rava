@@ -22,17 +22,18 @@ impl Visualizer {
         Self { color, spectrum }
     }
 
-    fn add_bar(&mut self) {
-        self.spectrum.add_range();
-    }
-
-    fn remove_bar(&mut self) {
-        self.spectrum.remove_range();
-    }
-
-    fn color(&mut self, color: Color) {
-        self.color = color;
-    }
+    // fn add_bar(&mut self) {
+    //     self.spectrum.add_range();
+    // }
+    //
+    // fn remove_bar(&mut self) {
+    //     self.spectrum.remove_range();
+    // }
+    //
+    // fn color(&mut self, color: Color) {
+    //     self.color = color;
+    // }
+    //
 
     pub fn bars(&self) -> usize {
         self.spectrum.ranges
