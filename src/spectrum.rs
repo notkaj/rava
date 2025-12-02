@@ -28,6 +28,7 @@ impl Spectrum {
         // let len = (ranges - 1) * 2;
         // eprintln!("Initializeing Audio Stream");
         let capturer = default_capturer();
+        capturer.init().expect("Capturer Initialization failed");
         let amps = vec![0; ranges];
         let fft = Fft::default();
         Self {

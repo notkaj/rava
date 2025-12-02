@@ -13,6 +13,10 @@ pub fn default_capturer() -> Box<dyn Capturer> {
     Box::new(Pipewire::default())
 }
 
+// pub fn default_capturer() -> impl Capturer {
+//     Pipewire::default()
+// }
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("Creation failed")]
