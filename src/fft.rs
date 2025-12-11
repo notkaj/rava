@@ -9,7 +9,7 @@ pub struct Fft {
 
 impl Default for Fft {
     fn default() -> Self {
-        Self::new(1024)
+        Self::new(2048)
     }
 }
 

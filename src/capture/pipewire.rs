@@ -1,3 +1,4 @@
+use crate::capture::capturer::BUFFER;
 use crate::capture::capturer::Capturer;
 use crate::capture::capturer::Error;
 use bytemuck::cast_slice;
@@ -12,11 +13,8 @@ use std::thread;
 // use spa::param::format::{MediaSubtype, MediaType};
 // use spa::param::format_utils;
 
-static BUFFER: RwLock<Vec<f32>> = RwLock::new(Vec::new());
-
 #[derive(Default)]
 pub struct Pipewire {
-    // buffer: Arc<RwLock<Vec<f32>>>,
     user_data: Arc<RwLock<UserData>>,
 }
 
@@ -33,9 +31,9 @@ impl Capturer for Pipewire {
     //     }
     // }
 
-    fn capture(&self) -> Result<Vec<f32>, Error> {
-        Ok(BUFFER.read().unwrap().clone())
-    }
+    // fn capture(&self) -> Result<Vec<f32>, Error> {
+    //     Ok(self.buffer.read().unwrap().clone())
+    // }
 
     fn init(&self) -> Result<(), Error> {
         let data = Arc::clone(&self.user_data);
@@ -52,10 +50,7 @@ impl Capturer for Pipewire {
     }
 }
 
-fn pw_thread(
-    // buffer_clone: Arc<RwLock<Vec<f32>>>,
-    data: Arc<RwLock<UserData>>,
-) -> Result<(), Error> {
+fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
     // init pipewire
     pipewire::init();
 
@@ -116,8 +111,13 @@ fn pw_thread(
 
             let type_size = mem::size_of::<f32>();
             let step = type_size * channels;
+            let buffer_size = size / step;
 
-            BUFFER.write().unwrap().resize(size / step, 0.0);
+            // println!("Size: {} bytes", size);
+            // println!("Buffer size: {}", buffer_size);
+            if BUFFER.read().unwrap().len() != buffer_size {
+                BUFFER.write().unwrap().resize(buffer_size, 0.0);
+            }
 
             if let Some(samples) = data.data() {
                 // let mut start = 0;
@@ -135,13 +135,29 @@ fn pw_thread(
                 //     let avg = sum / channels as f32;
                 //     buffer_clone.write().unwrap().insert(index, avg);
                 // }
+                let mut guard = BUFFER.write().unwrap();
                 for start in (0..size).step_by(step) {
                     let end = start + step;
                     let sample = &samples[start..end];
                     let chans = cast_slice(sample);
                     let avg = chans.iter().sum::<f32>() / channels as f32;
-                    BUFFER.write().unwrap().insert(start / step, avg);
+
+                    // let s = guard.len();
+                    // eprintln!("buffer starting size: {}", s);
+                    // eprintln!("start address: {}", start);
+                    // eprintln!("end address: {}", end);
+                    // eprintln!("channel average: {}", avg);
+                    // eprintln!("buffer index to write: {}", start / step);
+                    // eprintln!();
+
+                    guard[start / step] = avg;
                 }
+                drop(guard);
+
+                // println!(
+                //     "Buffer cap after write: {}",
+                //     BUFFER.read().unwrap().capacity()
+                // );
             }
         })
         .register()?;
