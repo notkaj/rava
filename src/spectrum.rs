@@ -2,19 +2,11 @@ use crate::capture::capturer::{Capturer, capture, default_capturer};
 use crate::fft::Fft;
 use rand::{Rng, rng};
 
-const DEFAULT_RANGES: usize = 48;
-
 pub struct Spectrum {
     capturer: Box<dyn Capturer>,
     pub ranges: usize,
     pub amps: Vec<u32>,
     fft: Fft,
-}
-
-impl Default for Spectrum {
-    fn default() -> Self {
-        Self::new(DEFAULT_RANGES)
-    }
 }
 
 impl Spectrum {
@@ -41,38 +33,40 @@ impl Spectrum {
 
         self.fft.place_input(sample.as_slice());
         let transform = self.fft.transform();
-        let length = transform.len();
 
-        // let length = sample.len();
+        let transform_len = transform.len();
+        // I'll skip the first 10% of the transform
+        let first = transform_len / 10;
+        // I'll clip off the last 50% of the transform
+        let last = first + (transform_len / 2);
+        let len = last - first;
+        let range_len = len / self.ranges;
 
-        let range_length = length / self.ranges;
-        // let rem = length % self.ranges;
-
-        let mut start = 0;
-        let mut end = range_length;
-        let mut i = 0;
-
-        while end < length {
-            let avg = transform[start..end].iter().sum::<f32>() / range_length as f32;
-            self.amps[i] = (avg * 100.0) as u32;
-            start = end;
-            end = start + range_length;
-            i += 1;
+        for i in 0..self.ranges {
+            let start = i * range_len;
+            let end = start + range_len;
+            let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
+            self.amps[i] = (avg * 50.0) as u32;
         }
 
-        // for i in 0..self.ranges - modu {
-        //     let start = i * range_length;
-        //     let end = start + range_length;
+        // let comp = &transform[40..540];
+        // let length = comp.len();
         //
-        //     println!("length: {}", range_length);
-        //     println!("start: {}", start);
-        //     println!("end: {}", end);
+        // // let length = sample.len();
         //
-        //     let avg = amps[start..end].iter().sum::<f32>() / range_length as f32;
+        // let range_length = length / self.ranges;
+        // // let rem = length % self.ranges;
         //
-        //     println!("avg: {}", avg);
+        // let mut start = 0;
+        // let mut end = range_length;
+        // let mut i = 0;
         //
-        //     self.amps[i] = avg as u32;
+        // while i < self.amps.len() {
+        //     let avg = comp[start..end].iter().sum::<f32>() / range_length as f32;
+        //     self.amps[i] = (avg * 50.0) as u32;
+        //     start = end;
+        //     end = start + range_length;
+        //     i += 1;
         // }
 
         // println!("avgs: ");

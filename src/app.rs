@@ -21,7 +21,7 @@ impl Default for App {
         Self {
             running: true,
             events: EventHandler::new(),
-            visualizer: Visualizer::default(),
+            visualizer: Default::default(),
         }
     }
 }

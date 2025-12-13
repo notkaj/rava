@@ -67,10 +67,11 @@ fn vertical_barchart(vis: &Visualizer, bar_width: u16) -> BarChart<'static> {
     BarChart::default()
         .data(BarGroup::default().bars(&bars))
         .bar_width(bar_width)
+        .max(800)
 }
 
-fn vertical_bar(freq: u32, color: Color) -> Bar<'static> {
+fn vertical_bar(amp: u32, color: Color) -> Bar<'static> {
     Bar::default()
-        .value(freq as u64)
+        .value(amp as u64)
         .style(Style::new().fg(color))
 }

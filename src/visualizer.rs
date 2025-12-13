@@ -2,17 +2,21 @@ use ratatui::style::Color;
 
 use crate::spectrum::Spectrum;
 
-// const DEFAULT_BAR_COUNT: usize = 48;
+const DEFAULT_BAR_COUNT: usize = 48;
 
-#[derive(Default)]
 pub struct Visualizer {
     pub color: Color,
     pub spectrum: Spectrum,
 }
 
+impl Default for Visualizer {
+    fn default() -> Self {
+        Self::new(DEFAULT_BAR_COUNT, Color::Green)
+    }
+}
+
 impl Visualizer {
-    pub fn new(bars: usize) -> Self {
-        let color = Color::Green;
+    pub fn new(bars: usize, color: Color) -> Self {
         let spectrum = Spectrum::new(bars);
         Self { color, spectrum }
     }
