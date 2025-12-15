@@ -59,8 +59,7 @@ impl Widget for &Visualizer {
 
 fn vertical_barchart(vis: &Visualizer, bar_width: u16) -> BarChart<'static> {
     let bars: Vec<Bar> = vis
-        .spectrum
-        .amps
+        .out
         .iter()
         .map(|amp| vertical_bar(*amp, vis.color))
         .collect();

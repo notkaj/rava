@@ -73,7 +73,7 @@ impl App {
     /// The tick event is where you can update the state of your application with any logic that
     /// needs to be updated at a fixed frame rate. E.g. polling a server, updating an animation.
     pub fn tick(&mut self) {
-        self.visualizer.spectrum.update();
+        self.visualizer.update();
     }
 
     /// Set running to false to quit the application.

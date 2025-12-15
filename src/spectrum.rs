@@ -9,6 +9,9 @@ pub struct Spectrum {
     fft: Fft,
 }
 
+const SKIP: usize = 10;
+const PRUNE: usize = 2;
+
 impl Spectrum {
     pub fn new(ranges: usize) -> Self {
         // eprintln!("Initializeing Audio Stream");
@@ -36,9 +39,9 @@ impl Spectrum {
 
         let transform_len = transform.len();
         // I'll skip the first 10% of the transform
-        let first = transform_len / 10;
+        let first = transform_len / SKIP;
         // I'll clip off the last 50% of the transform
-        let last = first + (transform_len / 2);
+        let last = first + (transform_len / PRUNE);
         let len = last - first;
         let range_len = len / self.ranges;
 
@@ -48,29 +51,6 @@ impl Spectrum {
             let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
             self.amps[i] = (avg * 50.0) as u32;
         }
-
-        // let comp = &transform[40..540];
-        // let length = comp.len();
-        //
-        // // let length = sample.len();
-        //
-        // let range_length = length / self.ranges;
-        // // let rem = length % self.ranges;
-        //
-        // let mut start = 0;
-        // let mut end = range_length;
-        // let mut i = 0;
-        //
-        // while i < self.amps.len() {
-        //     let avg = comp[start..end].iter().sum::<f32>() / range_length as f32;
-        //     self.amps[i] = (avg * 50.0) as u32;
-        //     start = end;
-        //     end = start + range_length;
-        //     i += 1;
-        // }
-
-        // println!("avgs: ");
-        // println!("{:?}", self.amps);
     }
 
     fn sample() -> Vec<f32> {

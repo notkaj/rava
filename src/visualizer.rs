@@ -1,12 +1,14 @@
 use ratatui::style::Color;
+use std::cmp;
 
 use crate::spectrum::Spectrum;
 
-const DEFAULT_BAR_COUNT: usize = 48;
+const DEFAULT_BAR_COUNT: usize = 72;
 
 pub struct Visualizer {
     pub color: Color,
     pub spectrum: Spectrum,
+    pub out: Vec<u32>,
 }
 
 impl Default for Visualizer {
@@ -18,7 +20,22 @@ impl Default for Visualizer {
 impl Visualizer {
     pub fn new(bars: usize, color: Color) -> Self {
         let spectrum = Spectrum::new(bars);
-        Self { color, spectrum }
+        let out = vec![0; bars];
+        Self {
+            color,
+            spectrum,
+            out,
+        }
+    }
+
+    pub fn update(&mut self) {
+        self.spectrum.update();
+        for (i, e) in self.spectrum.amps.iter().enumerate() {
+            let curr = self.out[i];
+            let decay = curr.div_ceil(10);
+            let new = curr - decay;
+            self.out[i] = cmp::max(new, *e);
+        }
     }
 
     // fn add_bar(&mut self) {
