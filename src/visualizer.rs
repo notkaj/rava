@@ -4,6 +4,7 @@ use std::cmp;
 use crate::spectrum::Spectrum;
 
 const DEFAULT_BAR_COUNT: usize = 72;
+const DEFAULT_RATE_OF_DECAY: f32 = 0.1;
 
 pub struct Visualizer {
     pub color: Color,
@@ -32,9 +33,9 @@ impl Visualizer {
         self.spectrum.update();
         for (i, e) in self.spectrum.amps.iter().enumerate() {
             let curr = self.out[i];
-            // TODO: make the divisor a ratio, make it a const
-            let decay = curr.div_ceil(10);
-            let new = curr - decay; // this never overflows somehow
+            let decay = (curr as f32 * DEFAULT_RATE_OF_DECAY).ceil() as u32;
+            // let new = curr.saturating_sub(decay);
+            let new = curr - decay; // this doesn't overflow somehow
             self.out[i] = cmp::max(new, *e);
         }
     }
