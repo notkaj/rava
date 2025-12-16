@@ -8,7 +8,7 @@ const DEFAULT_RATE_OF_DECAY: f32 = 0.1;
 
 pub struct Visualizer {
     pub color: Color,
-    pub spectrum: Spectrum,
+    spectrum: Spectrum,
     pub out: Vec<u32>,
 }
 
@@ -40,14 +40,16 @@ impl Visualizer {
         }
     }
 
-    // fn add_bar(&mut self) {
-    //     self.spectrum.add_range();
-    // }
-    //
-    // fn remove_bar(&mut self) {
-    //     self.spectrum.remove_range();
-    // }
-    //
+    pub fn add_bar(&mut self) {
+        self.spectrum.add_range();
+        self.out.push(0);
+    }
+
+    pub fn remove_bar(&mut self) {
+        self.spectrum.remove_range();
+        self.out.pop();
+    }
+
     // fn color(&mut self, color: Color) {
     //     self.color = color;
     // }

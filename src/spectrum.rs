@@ -46,7 +46,6 @@ impl Spectrum {
             let start = (i + OFFSET) * range_len;
             let end = start + range_len;
             let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
-            // TODO: move the multiple out of this module, make it dependant on height of terminal
             self.amps[i] = (avg * SCALE) as u32;
         }
     }

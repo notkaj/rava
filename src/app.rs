@@ -62,6 +62,8 @@ impl App {
             KeyCode::Char('c' | 'C') if key_event.modifiers == KeyModifiers::CONTROL => {
                 self.events.send(AppEvent::Quit)
             }
+            KeyCode::Char('l') => self.visualizer.add_bar(),
+            KeyCode::Char('h') => self.visualizer.remove_bar(),
             // Other handlers you could add here.
             _ => {}
         }
