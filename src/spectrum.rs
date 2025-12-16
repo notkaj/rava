@@ -9,8 +9,9 @@ pub struct Spectrum {
     fft: Fft,
 }
 
-const SKIP: usize = 10;
-const PRUNE: usize = 2;
+const RATIO: f32 = 0.3;
+const OFFSET: usize = 4;
+const SCALE: f32 = 50.0;
 
 impl Spectrum {
     pub fn new(ranges: usize) -> Self {
@@ -38,18 +39,15 @@ impl Spectrum {
         let transform = self.fft.transform();
 
         let transform_len = transform.len();
-        // I'll skip the first 10% of the transform
-        let first = transform_len / SKIP;
-        // I'll clip off the last 50% of the transform
-        let last = first + (transform_len / PRUNE);
-        let len = last - first;
+        let len = (transform_len as f32 * RATIO) as usize;
         let range_len = len / self.ranges;
 
         for i in 0..self.ranges {
-            let start = i * range_len;
+            let start = (i + OFFSET) * range_len;
             let end = start + range_len;
             let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
-            self.amps[i] = (avg * 50.0) as u32;
+            // TODO: move the multiple out of this module, make it dependant on height of terminal
+            self.amps[i] = (avg * SCALE) as u32;
         }
     }
 

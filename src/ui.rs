@@ -72,5 +72,6 @@ fn vertical_barchart(vis: &Visualizer, bar_width: u16) -> BarChart<'static> {
 fn vertical_bar(amp: u32, color: Color) -> Bar<'static> {
     Bar::default()
         .value(amp as u64)
+        .text_value(String::new())
         .style(Style::new().fg(color))
 }

@@ -32,8 +32,9 @@ impl Visualizer {
         self.spectrum.update();
         for (i, e) in self.spectrum.amps.iter().enumerate() {
             let curr = self.out[i];
+            // TODO: make the divisor a ratio, make it a const
             let decay = curr.div_ceil(10);
-            let new = curr - decay;
+            let new = curr - decay; // this never overflows somehow
             self.out[i] = cmp::max(new, *e);
         }
     }
