@@ -64,6 +64,8 @@ impl App {
             }
             KeyCode::Char('l') => self.visualizer.add_bar(),
             KeyCode::Char('h') => self.visualizer.remove_bar(),
+            KeyCode::Char('k') => self.visualizer.increment_scale(),
+            KeyCode::Char('j') => self.visualizer.decrement_scale(),
             // Other handlers you could add here.
             _ => {}
         }

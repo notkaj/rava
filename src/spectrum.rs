@@ -6,12 +6,13 @@ pub struct Spectrum {
     capturer: Box<dyn Capturer>,
     pub ranges: usize,
     pub amps: Vec<u32>,
+    scale: f32,
     fft: Fft,
 }
 
 const RATIO: f32 = 0.3;
 const OFFSET: usize = 4;
-const SCALE: f32 = 50.0;
+const DEFAULT_SCALE: f32 = 50.0;
 
 impl Spectrum {
     pub fn new(ranges: usize) -> Self {
@@ -20,10 +21,12 @@ impl Spectrum {
         capturer.init().expect("Error in Capturer Initialization");
         let amps = vec![0; ranges];
         let fft = Fft::default();
+        let scale = DEFAULT_SCALE;
         Self {
             capturer,
             ranges,
             amps,
+            scale,
             fft,
         }
     }
@@ -46,7 +49,7 @@ impl Spectrum {
             let start = (i + OFFSET) * range_len;
             let end = start + range_len;
             let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
-            self.amps[i] = (avg * SCALE) as u32;
+            self.amps[i] = (avg * self.scale) as u32;
         }
     }
 
@@ -67,6 +70,10 @@ impl Spectrum {
         self.amps = vec![0; self.ranges];
         // let len = (self.ranges - 1) * 2;
         // self.capturer = Capturer::new(len);
+    }
+
+    pub fn adjust_scale(&mut self, value: f32) {
+        self.scale += value;
     }
 
     pub fn sample_rate(&self) -> usize {

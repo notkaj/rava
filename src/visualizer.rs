@@ -50,6 +50,14 @@ impl Visualizer {
         self.out.pop();
     }
 
+    pub fn increment_scale(&mut self) {
+        self.spectrum.adjust_scale(1.0);
+    }
+
+    pub fn decrement_scale(&mut self) {
+        self.spectrum.adjust_scale(-1.0);
+    }
+
     // fn color(&mut self, color: Color) {
     //     self.color = color;
     // }
