@@ -1,4 +1,5 @@
 use crate::event::{AppEvent, Event, EventHandler};
+use crate::filter::NormalFilter;
 use crate::visualizer::Visualizer;
 use ratatui::{
     DefaultTerminal,
@@ -13,7 +14,7 @@ pub struct App {
     /// Event handler.
     pub events: EventHandler,
     /// Visualizer Widget
-    pub visualizer: Visualizer,
+    pub visualizer: Visualizer<NormalFilter>,
 }
 
 impl Default for App {

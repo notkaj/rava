@@ -7,6 +7,7 @@ use ratatui::{
 };
 
 use crate::app::App;
+use crate::filter::NormalFilter;
 use crate::visualizer::Visualizer;
 
 impl Widget for &App {
@@ -16,7 +17,7 @@ impl Widget for &App {
     }
 }
 
-impl Widget for &Visualizer {
+impl Widget for &Visualizer<NormalFilter> {
     /// Renders the user interface widgets.
     ///
     // This is where you add new widgets.
@@ -58,7 +59,11 @@ impl Widget for &Visualizer {
     }
 }
 
-fn vertical_barchart(vis: &Visualizer, bar_width: u16, height: u64) -> BarChart<'static> {
+fn vertical_barchart(
+    vis: &Visualizer<NormalFilter>,
+    bar_width: u16,
+    height: u64,
+) -> BarChart<'static> {
     let bars: Vec<Bar> = vis
         .out
         .iter()

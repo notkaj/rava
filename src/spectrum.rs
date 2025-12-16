@@ -10,7 +10,7 @@ pub struct Spectrum {
     fft: Fft,
 }
 
-const RATIO: f32 = 0.1;
+const RATIO: f32 = 0.10;
 const OFFSET: usize = 0;
 const DEFAULT_SCALE: f32 = 3.0;
 

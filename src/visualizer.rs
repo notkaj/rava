@@ -1,31 +1,35 @@
 use ratatui::style::Color;
 use std::cmp;
 
+use crate::filter::{Filter, NormalFilter};
 use crate::spectrum::Spectrum;
 
 const DEFAULT_BAR_COUNT: usize = 72;
-const DEFAULT_RATE_OF_DECAY: f32 = 0.1;
+const DEFAULT_RATE_OF_DECAY: f32 = 0.1; // i think this should be removed and placed in filter
+const DEFAULT_COLOR: Color = Color::Green;
 
-pub struct Visualizer {
+pub struct Visualizer<T: Filter> {
     pub color: Color,
     spectrum: Spectrum,
     pub out: Vec<u32>,
+    filter: T,
 }
 
-impl Default for Visualizer {
+impl Default for Visualizer<NormalFilter> {
     fn default() -> Self {
-        Self::new(DEFAULT_BAR_COUNT, Color::Green)
+        Self::new(DEFAULT_BAR_COUNT, DEFAULT_COLOR, Default::default())
     }
 }
 
-impl Visualizer {
-    pub fn new(bars: usize, color: Color) -> Self {
+impl<T: Filter> Visualizer<T> {
+    pub fn new(bars: usize, color: Color, filter: T) -> Self {
         let spectrum = Spectrum::new(bars);
         let out = vec![0; bars];
         Self {
             color,
             spectrum,
             out,
+            filter,
         }
     }
 
