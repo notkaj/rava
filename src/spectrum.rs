@@ -10,9 +10,9 @@ pub struct Spectrum {
     fft: Fft,
 }
 
-const RATIO: f32 = 0.3;
-const OFFSET: usize = 4;
-const DEFAULT_SCALE: f32 = 50.0;
+const RATIO: f32 = 0.1;
+const OFFSET: usize = 0;
+const DEFAULT_SCALE: f32 = 3.0;
 
 impl Spectrum {
     pub fn new(ranges: usize) -> Self {

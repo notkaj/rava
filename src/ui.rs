@@ -48,16 +48,17 @@ impl Widget for &Visualizer {
         // let layout = Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).spacing(1);
         let bars = self.bars() as u16;
         let width = area.width;
+        let height = area.height as u64;
 
         let bar_width = width / (bars + 1);
 
-        let chart = vertical_barchart(self, bar_width);
+        let chart = vertical_barchart(self, bar_width, height);
 
         chart.render(area, buf)
     }
 }
 
-fn vertical_barchart(vis: &Visualizer, bar_width: u16) -> BarChart<'static> {
+fn vertical_barchart(vis: &Visualizer, bar_width: u16, height: u64) -> BarChart<'static> {
     let bars: Vec<Bar> = vis
         .out
         .iter()
@@ -66,7 +67,7 @@ fn vertical_barchart(vis: &Visualizer, bar_width: u16) -> BarChart<'static> {
     BarChart::default()
         .data(BarGroup::default().bars(&bars))
         .bar_width(bar_width)
-        .max(800)
+        .max(height * 8)
 }
 
 fn vertical_bar(amp: u32, color: Color) -> Bar<'static> {
