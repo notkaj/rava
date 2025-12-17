@@ -50,6 +50,10 @@ impl App {
                 }
                 Event::App(app_event) => match app_event {
                     AppEvent::Quit => self.quit(),
+                    AppEvent::AddBar => self.visualizer.add_bar(),
+                    AppEvent::RemoveBar => self.visualizer.remove_bar(),
+                    AppEvent::IncrementScale => self.visualizer.increment_scale(),
+                    AppEvent::DecrementScale => self.visualizer.decrement_scale(),
                 },
             }
         }
@@ -63,10 +67,10 @@ impl App {
             KeyCode::Char('c' | 'C') if key_event.modifiers == KeyModifiers::CONTROL => {
                 self.events.send(AppEvent::Quit)
             }
-            KeyCode::Char('l') => self.visualizer.add_bar(),
-            KeyCode::Char('h') => self.visualizer.remove_bar(),
-            KeyCode::Char('k') => self.visualizer.increment_scale(),
-            KeyCode::Char('j') => self.visualizer.decrement_scale(),
+            KeyCode::Char('l') => self.events.send(AppEvent::AddBar),
+            KeyCode::Char('h') => self.events.send(AppEvent::RemoveBar),
+            KeyCode::Char('k') => self.events.send(AppEvent::IncrementScale),
+            KeyCode::Char('j') => self.events.send(AppEvent::DecrementScale),
             // Other handlers you could add here.
             _ => {}
         }

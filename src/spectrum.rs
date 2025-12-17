@@ -74,7 +74,11 @@ impl Spectrum {
     }
 
     pub fn adjust_scale(&mut self, value: f32) {
-        self.scale += value;
+        if self.scale > value {
+            self.scale += value
+        } else {
+            self.scale = 0.0
+        }
     }
 
     pub fn sample_rate(&self) -> usize {

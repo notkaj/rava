@@ -8,10 +8,12 @@ pub struct NormalFilter {
     rate_of_decay: f32,
 }
 
+const DEFAULT_RATE_OF_DECAY: f32 = 0.07;
+
 impl Default for NormalFilter {
     fn default() -> Self {
         // TODO: make this a const or some shit
-        Self::new(0.10)
+        Self::new(DEFAULT_RATE_OF_DECAY)
     }
 }
 
