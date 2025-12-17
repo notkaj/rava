@@ -1,7 +1,7 @@
 use std::cmp;
 
 pub trait Filter {
-    fn filter(&self, raw: &[u32], out: &mut [u32]);
+    fn apply(&self, raw: &[u32], out: &mut [u32]);
 }
 
 pub struct NormalFilter {
@@ -22,7 +22,7 @@ impl NormalFilter {
 }
 
 impl Filter for NormalFilter {
-    fn filter(&self, raw: &[u32], out: &mut [u32]) {
+    fn apply(&self, raw: &[u32], out: &mut [u32]) {
         for (i, e) in raw.iter().enumerate() {
             let curr = out[i];
             let decay = (curr as f32 * self.rate_of_decay).ceil() as u32;

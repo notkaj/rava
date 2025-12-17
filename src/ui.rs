@@ -47,6 +47,8 @@ impl Widget for &Visualizer<NormalFilter> {
         // paragraph.render(area, buf);
 
         // let layout = Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).spacing(1);
+
+        // TODO: maybe only recalculate this on terminal resize?
         let bars = self.bars() as u16;
         let width = area.width;
         let height = area.height as u64;
@@ -72,12 +74,13 @@ fn vertical_barchart(
     BarChart::default()
         .data(BarGroup::default().bars(&bars))
         .bar_width(bar_width)
-        .max(height * 8)
+        .max(height * 8) // should give the max resolution (each cell has 8 ticks)
 }
 
 fn vertical_bar(amp: u32, color: Color) -> Bar<'static> {
+    let blank = String::new();
     Bar::default()
         .value(amp as u64)
-        .text_value(String::new())
+        .text_value(blank)
         .style(Style::new().fg(color))
 }

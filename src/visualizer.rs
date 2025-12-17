@@ -1,11 +1,9 @@
 use ratatui::style::Color;
-use std::cmp;
 
 use crate::filter::{Filter, NormalFilter};
 use crate::spectrum::Spectrum;
 
-const DEFAULT_BAR_COUNT: usize = 72;
-const DEFAULT_RATE_OF_DECAY: f32 = 0.1; // i think this should be removed and placed in filter
+const DEFAULT_BAR_COUNT: usize = 48;
 const DEFAULT_COLOR: Color = Color::Green;
 
 pub struct Visualizer<T: Filter> {
@@ -35,13 +33,7 @@ impl<T: Filter> Visualizer<T> {
 
     pub fn update(&mut self) {
         self.spectrum.update();
-        for (i, e) in self.spectrum.amps.iter().enumerate() {
-            let curr = self.out[i];
-            let decay = (curr as f32 * DEFAULT_RATE_OF_DECAY).ceil() as u32;
-            // let new = curr.saturating_sub(decay);
-            let new = curr - decay; // this doesn't overflow somehow
-            self.out[i] = cmp::max(new, *e);
-        }
+        self.filter.apply(&self.spectrum.amps, &mut self.out);
     }
 
     pub fn add_bar(&mut self) {

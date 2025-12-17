@@ -6,7 +6,7 @@ pub struct Spectrum {
     capturer: Box<dyn Capturer>,
     pub ranges: usize,
     pub amps: Vec<u32>,
-    scale: f32,
+    scale: f32, // should be moved out to Visualizer
     fft: Fft,
 }
 
@@ -34,6 +34,7 @@ impl Spectrum {
     pub fn update(&mut self) {
         let sample = Spectrum::sample();
 
+        // TODO: create a more permanent solution for this
         if sample.is_empty() || sample.len() != 2048 {
             return;
         }
