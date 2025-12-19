@@ -11,7 +11,7 @@ pub struct Spectrum {
 
 const RATIO: f32 = 0.10;
 const OFFSET: usize = 0;
-const DEFAULT_SCALE: f32 = 10.0;
+const DEFAULT_SCALE: f32 = 16.0;
 
 impl Spectrum {
     pub fn new(ranges: usize) -> Self {

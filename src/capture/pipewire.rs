@@ -68,7 +68,7 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
 
     };
 
-    let stream = pw::stream::StreamBox::new(&core, "audio-capture", props)?;
+    let stream = pw::stream::StreamBox::new(&core, "rava-audio-capture", props)?;
     // let buffer_clone = Arc::clone(&cap_buffer);
 
     let _listener = stream
@@ -113,8 +113,7 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
             let step = type_size * channels;
             let buffer_size = size / step;
 
-            // println!("Size: {} bytes", size);
-            // println!("Buffer size: {}", buffer_size);
+            // TODO:probably don't need this conditional
             if BUFFER.read().unwrap().len() != buffer_size {
                 BUFFER.write().unwrap().resize(buffer_size, 0.0);
             }
@@ -152,7 +151,7 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
 
                     guard[start / step] = avg;
                 }
-                drop(guard);
+                // drop(guard);
 
                 // println!(
                 //     "Buffer cap after write: {}",

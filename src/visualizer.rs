@@ -1,10 +1,10 @@
 use ratatui::style::Color;
 
-use crate::filter::{Filter, NormalFilter};
+use crate::filter::{Filter, NormalFilter, SmoothFilter};
 use crate::spectrum::Spectrum;
 
-const DEFAULT_BAR_COUNT: usize = 48;
-const DEFAULT_COLOR: Color = Color::Green;
+const DEFAULT_BAR_COUNT: usize = 72;
+const DEFAULT_COLOR: Color = Color::Blue;
 
 pub struct Visualizer<T: Filter> {
     pub color: Color,
@@ -14,6 +14,12 @@ pub struct Visualizer<T: Filter> {
 }
 
 impl Default for Visualizer<NormalFilter> {
+    fn default() -> Self {
+        Self::new(DEFAULT_BAR_COUNT, DEFAULT_COLOR, Default::default())
+    }
+}
+
+impl Default for Visualizer<SmoothFilter> {
     fn default() -> Self {
         Self::new(DEFAULT_BAR_COUNT, DEFAULT_COLOR, Default::default())
     }

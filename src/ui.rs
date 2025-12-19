@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::filter::NormalFilter;
+use crate::filter::{NormalFilter /* SmoothFilter */};
 use crate::visualizer::Visualizer;
 
 impl Widget for &App {
