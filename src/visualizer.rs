@@ -9,7 +9,7 @@ const DEFAULT_COLOR: Color = Color::Green;
 pub struct Visualizer<T: Filter> {
     pub color: Color,
     spectrum: Spectrum,
-    pub out: Vec<u32>,
+    out: Vec<u32>,
     filter: T,
 }
 
@@ -34,6 +34,10 @@ impl<T: Filter> Visualizer<T> {
     pub fn update(&mut self) {
         self.spectrum.update();
         self.filter.apply(&self.spectrum.amps, &mut self.out);
+    }
+
+    pub fn output(&self) -> &[u32] {
+        &self.out
     }
 
     pub fn add_bar(&mut self) {

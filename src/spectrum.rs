@@ -1,18 +1,17 @@
 use crate::capture::capturer::{Capturer, capture, default_capturer};
 use crate::fft::Fft;
-use rand::{Rng, rng};
 
 pub struct Spectrum {
     capturer: Box<dyn Capturer>,
     pub ranges: usize,
     pub amps: Vec<u32>,
-    scale: f32, // should be moved out to Visualizer
+    scale: f32, // should be moved out to Visualizer?
     fft: Fft,
 }
 
 const RATIO: f32 = 0.10;
 const OFFSET: usize = 0;
-const DEFAULT_SCALE: f32 = 3.0;
+const DEFAULT_SCALE: f32 = 10.0;
 
 impl Spectrum {
     pub fn new(ranges: usize) -> Self {
@@ -50,7 +49,8 @@ impl Spectrum {
             let start = (i + OFFSET) * range_len;
             let end = start + range_len;
             let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
-            self.amps[i] = (avg * self.scale) as u32;
+            let root = avg.sqrt();
+            self.amps[i] = (root * self.scale) as u32;
         }
     }
 
@@ -74,7 +74,7 @@ impl Spectrum {
     }
 
     pub fn adjust_scale(&mut self, value: f32) {
-        if self.scale > value {
+        if self.scale + value > 0.0 {
             self.scale += value
         } else {
             self.scale = 0.0
@@ -87,25 +87,5 @@ impl Spectrum {
 
     pub fn channels(&self) -> usize {
         self.capturer.channels()
-    }
-
-    // pub fn test_data(ranges: usize) -> Self {
-    //     // let amps: Vec<u8> = (0..ranges).map(|_| rng().random_range(50..90)).collect();
-    //     let capturer = Capturer::default();
-    //     let amps = vec![0; ranges];
-    //     let fft = Fft::default();
-    //     Self {
-    //         capturer,
-    //         ranges,
-    //         amps,
-    //         fft,
-    //     }
-    // }
-
-    pub fn test_sample(&self) -> Vec<u8> {
-        let amps: Vec<u8> = (0..self.ranges)
-            .map(|_| rng().random_range(10..70))
-            .collect();
-        amps
     }
 }

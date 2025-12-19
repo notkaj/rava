@@ -67,7 +67,7 @@ fn vertical_barchart(
     height: u64,
 ) -> BarChart<'static> {
     let bars: Vec<Bar> = vis
-        .out
+        .output()
         .iter()
         .map(|amp| vertical_bar(*amp, vis.color))
         .collect();
