@@ -28,7 +28,7 @@ impl NormalFilter {
 impl Filter for NormalFilter {
     fn apply(&self, raw: &[u32], out: &mut [u32]) {
         for (i, e) in raw.iter().enumerate() {
-            if *e > out[i] {
+            if *e > out[i] + 2 {
                 let diff = *e - out[i];
                 out[i] += (diff as f32 * self.rate_of_increase) as u32;
                 // out[i] = *e;

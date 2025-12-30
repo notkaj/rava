@@ -20,10 +20,6 @@ pub fn capture() -> Result<Vec<f32>, Error> {
     Ok(BUFFER.read().unwrap().clone())
 }
 
-// pub fn default_capturer() -> impl Capturer {
-//     Pipewire::default()
-// }
-
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("Creation failed")]

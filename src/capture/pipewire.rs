@@ -4,6 +4,7 @@ use crate::capture::capturer::Error;
 use bytemuck::cast_slice;
 use pipewire as pw;
 use pw::spa::param::format_utils;
+use pw::stream::Stream;
 use pw::{properties::properties, spa};
 use spa::param::format::{MediaSubtype, MediaType};
 use spa::pod::Pod;
@@ -58,8 +59,6 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
     let context = pw::context::ContextRc::new(&mainloop, None)?;
     let core = context.connect_rc(None)?;
 
-    // let data = Arc::clone(&cap_data);
-
     let props = properties! {
         *pw::keys::MEDIA_TYPE => "Audio",
         *pw::keys::MEDIA_CATEGORY => "Capture",
@@ -69,7 +68,6 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
     };
 
     let stream = pw::stream::StreamBox::new(&core, "rava-audio-capture", props)?;
-    // let buffer_clone = Arc::clone(&cap_buffer);
 
     let _listener = stream
         .add_local_listener_with_user_data(data)
@@ -98,67 +96,51 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
                 .parse(param)
                 .expect("Failed to parse param on the param_changed event");
         })
-        .process(move |stream, user_data| {
-            let mut buffer = stream.dequeue_buffer().unwrap();
-            let datas = buffer.datas_mut();
-            if datas.is_empty() {
-                return;
-            }
-
-            let data = &mut datas[0];
-            let channels = user_data.read().unwrap().format.channels() as usize;
-            let size = data.chunk().size() as usize;
-
-            let type_size = mem::size_of::<f32>();
-            let step = type_size * channels;
-            let buffer_size = size / step;
-
-            // TODO:probably don't need this conditional
-            if BUFFER.read().unwrap().len() != buffer_size {
-                BUFFER.write().unwrap().resize(buffer_size, 0.0);
-            }
-
-            if let Some(samples) = data.data() {
-                // let mut start = 0;
-                // let mut end = start + type_size;
-                // while end < size {
-                //     let index = start / step;
-                //     let mut sum = 0.0;
-                //     for _ in 0..channels {
-                //         let chan = &samples[start..end];
-                //         let sample = f32::from_le_bytes(chan.try_into().unwrap());
-                //         sum += sample;
-                //         start += type_size;
-                //         end += type_size;
-                //     }
-                //     let avg = sum / channels as f32;
-                //     buffer_clone.write().unwrap().insert(index, avg);
-                // }
-                let mut guard = BUFFER.write().unwrap();
-                for start in (0..size).step_by(step) {
-                    let end = start + step;
-                    let sample = &samples[start..end];
-                    let chans = cast_slice(sample);
-                    let avg = chans.iter().sum::<f32>() / channels as f32;
-
-                    // let s = guard.len();
-                    // eprintln!("buffer starting size: {}", s);
-                    // eprintln!("start address: {}", start);
-                    // eprintln!("end address: {}", end);
-                    // eprintln!("channel average: {}", avg);
-                    // eprintln!("buffer index to write: {}", start / step);
-                    // eprintln!();
-
-                    guard[start / step] = avg;
-                }
-                // drop(guard);
-
-                // println!(
-                //     "Buffer cap after write: {}",
-                //     BUFFER.read().unwrap().capacity()
-                // );
-            }
-        })
+        .process(averaged)
+        // .process(move |stream, user_data| {
+        //     let mut buffer = stream.dequeue_buffer().unwrap();
+        //     let datas = buffer.datas_mut();
+        //     if datas.is_empty() {
+        //         return;
+        //     }
+        //
+        //     let data = &mut datas[0];
+        //     let channels = user_data.read().unwrap().format.channels() as usize;
+        //     let size = data.chunk().size() as usize;
+        //
+        //     let type_size = mem::size_of::<f32>();
+        //     let step = type_size * channels;
+        //     let buffer_size = size / step;
+        //
+        //     // TODO:probably don't need this conditional
+        //     if BUFFER.read().unwrap().len() != buffer_size {
+        //         BUFFER.write().unwrap().resize(buffer_size, 0.0);
+        //     }
+        //
+        //     if let Some(samples) = data.data() {
+        //         let mut guard = BUFFER.write().unwrap();
+        //         for start in (0..size).step_by(step) {
+        //             let end = start + step;
+        //             let sample = &samples[start..end];
+        //             let chans = cast_slice(sample);
+        //             let avg = chans.iter().sum::<f32>() / channels as f32;
+        //
+        //             // let s = guard.len();
+        //             // eprintln!("buffer starting size: {}", s);
+        //             // eprintln!("start address: {}", start);
+        //             // eprintln!("end address: {}", end);
+        //             // eprintln!("channel average: {}", avg);
+        //             // eprintln!("buffer index to write: {}", start / step);
+        //             // eprintln!();
+        //
+        //             guard[start / step] = avg;
+        //         }
+        //         // println!(
+        //         //     "Buffer cap after write: {}",
+        //         //     BUFFER.read().unwrap().capacity()
+        //         // );
+        //     }
+        // })
         .register()?;
 
     let mut audio_info = spa::param::audio::AudioInfoRaw::new();
@@ -190,6 +172,76 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
     mainloop.run();
 
     Ok(())
+}
+
+fn averaged(stream: &Stream, user_data: &mut Arc<RwLock<UserData>>) {
+    let mut buffer = stream.dequeue_buffer().unwrap();
+    let datas = buffer.datas_mut();
+    if datas.is_empty() {
+        return;
+    }
+
+    let data = &mut datas[0];
+    let channels = user_data.read().unwrap().format.channels() as usize;
+    let size = data.chunk().size() as usize;
+
+    let type_size = mem::size_of::<f32>();
+    let step = type_size * channels;
+    let buffer_size = size / step;
+
+    // TODO:probably don't need this conditional
+    if BUFFER.read().unwrap().len() != buffer_size {
+        BUFFER.write().unwrap().resize(buffer_size, 0.0);
+    }
+
+    if let Some(samples) = data.data() {
+        let mut guard = BUFFER.write().unwrap();
+        for start in (0..size).step_by(step) {
+            let end = start + step;
+            let sample = &samples[start..end];
+            let chans = cast_slice(sample);
+            let avg = chans.iter().sum::<f32>() / channels as f32;
+
+            // let s = guard.len();
+            // eprintln!("buffer starting size: {}", s);
+            // eprintln!("start address: {}", start);
+            // eprintln!("end address: {}", end);
+            // eprintln!("channel average: {}", avg);
+            // eprintln!("buffer index to write: {}", start / step);
+            // eprintln!();
+
+            guard[start / step] = avg;
+        }
+        // println!(
+        //     "Buffer cap after write: {}",
+        //     BUFFER.read().unwrap().capacity()
+        // );
+    }
+}
+
+#[allow(dead_code)]
+fn interpolated(stream: &Stream, _: &mut Arc<RwLock<UserData>>) {
+    let mut buffer = stream.dequeue_buffer().unwrap();
+    let datas = buffer.datas_mut();
+    if datas.is_empty() {
+        return;
+    }
+
+    let data = &mut datas[0];
+    let size = data.chunk().size() as usize;
+
+    let type_size = mem::size_of::<f32>();
+    let buffer_size = size / type_size;
+
+    if BUFFER.read().unwrap().len() != buffer_size {
+        BUFFER.write().unwrap().resize(buffer_size, 0.0);
+    }
+
+    if let Some(samples) = data.data() {
+        let mut guard = BUFFER.write().unwrap();
+        let interpol = cast_slice(samples);
+        guard.copy_from_slice(interpol);
+    }
 }
 
 impl From<pipewire::Error> for Error {
