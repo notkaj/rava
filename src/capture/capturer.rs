@@ -16,8 +16,19 @@ pub fn default_capturer() -> Box<dyn Capturer> {
     Box::new(Pipewire::default())
 }
 
+pub fn default_interpolated_capturer() -> Box<dyn Capturer> {
+    Box::new(Pipewire::new(Interp::Interpolated))
+}
+
 pub fn capture() -> Result<Vec<f32>, Error> {
     Ok(BUFFER.read().unwrap().clone())
+}
+
+#[derive(Default, Clone, Copy)]
+pub enum Interp {
+    #[default]
+    Averaged,
+    Interpolated,
 }
 
 #[derive(Error, Debug)]

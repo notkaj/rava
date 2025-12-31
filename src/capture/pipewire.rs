@@ -1,6 +1,7 @@
 use crate::capture::capturer::BUFFER;
 use crate::capture::capturer::Capturer;
 use crate::capture::capturer::Error;
+use crate::capture::capturer::Interp;
 use bytemuck::cast_slice;
 use pipewire as pw;
 use pw::spa::param::format_utils;
@@ -11,12 +12,11 @@ use spa::pod::Pod;
 use std::mem;
 use std::sync::{Arc, RwLock};
 use std::thread;
-// use spa::param::format::{MediaSubtype, MediaType};
-// use spa::param::format_utils;
 
 #[derive(Default)]
 pub struct Pipewire {
     user_data: Arc<RwLock<UserData>>,
+    interp: Interp,
 }
 
 #[derive(Default)]
@@ -24,21 +24,18 @@ struct UserData {
     format: spa::param::audio::AudioInfoRaw,
 }
 
+impl Pipewire {
+    pub fn new(interp: Interp) -> Self {
+        let user_data = Default::default();
+        Pipewire { user_data, interp }
+    }
+}
+
 impl Capturer for Pipewire {
-    // fn capture(&self) -> Result<Vec<f32>, Error> {
-    //     match self.buffer.read() {
-    //         Ok(r) => Ok(r.to_owned()),
-    //         Err(_) => Err(Error::InternalError),
-    //     }
-    // }
-
-    // fn capture(&self) -> Result<Vec<f32>, Error> {
-    //     Ok(self.buffer.read().unwrap().clone())
-    // }
-
     fn init(&self) -> Result<(), Error> {
         let data = Arc::clone(&self.user_data);
-        thread::spawn(move || pw_thread(data));
+        let interp = self.interp;
+        thread::spawn(move || pw_thread(data, interp));
         Ok(())
     }
 
@@ -51,7 +48,7 @@ impl Capturer for Pipewire {
     }
 }
 
-fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
+fn pw_thread(data: Arc<RwLock<UserData>>, interp: Interp) -> Result<(), Error> {
     // init pipewire
     pipewire::init();
 
@@ -68,6 +65,11 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
     };
 
     let stream = pw::stream::StreamBox::new(&core, "rava-audio-capture", props)?;
+
+    let process_fn = match interp {
+        Interp::Averaged => averaged,
+        Interp::Interpolated => interpolated,
+    };
 
     let _listener = stream
         .add_local_listener_with_user_data(data)
@@ -96,51 +98,7 @@ fn pw_thread(data: Arc<RwLock<UserData>>) -> Result<(), Error> {
                 .parse(param)
                 .expect("Failed to parse param on the param_changed event");
         })
-        .process(averaged)
-        // .process(move |stream, user_data| {
-        //     let mut buffer = stream.dequeue_buffer().unwrap();
-        //     let datas = buffer.datas_mut();
-        //     if datas.is_empty() {
-        //         return;
-        //     }
-        //
-        //     let data = &mut datas[0];
-        //     let channels = user_data.read().unwrap().format.channels() as usize;
-        //     let size = data.chunk().size() as usize;
-        //
-        //     let type_size = mem::size_of::<f32>();
-        //     let step = type_size * channels;
-        //     let buffer_size = size / step;
-        //
-        //     // TODO:probably don't need this conditional
-        //     if BUFFER.read().unwrap().len() != buffer_size {
-        //         BUFFER.write().unwrap().resize(buffer_size, 0.0);
-        //     }
-        //
-        //     if let Some(samples) = data.data() {
-        //         let mut guard = BUFFER.write().unwrap();
-        //         for start in (0..size).step_by(step) {
-        //             let end = start + step;
-        //             let sample = &samples[start..end];
-        //             let chans = cast_slice(sample);
-        //             let avg = chans.iter().sum::<f32>() / channels as f32;
-        //
-        //             // let s = guard.len();
-        //             // eprintln!("buffer starting size: {}", s);
-        //             // eprintln!("start address: {}", start);
-        //             // eprintln!("end address: {}", end);
-        //             // eprintln!("channel average: {}", avg);
-        //             // eprintln!("buffer index to write: {}", start / step);
-        //             // eprintln!();
-        //
-        //             guard[start / step] = avg;
-        //         }
-        //         // println!(
-        //         //     "Buffer cap after write: {}",
-        //         //     BUFFER.read().unwrap().capacity()
-        //         // );
-        //     }
-        // })
+        .process(process_fn)
         .register()?;
 
     let mut audio_info = spa::param::audio::AudioInfoRaw::new();
