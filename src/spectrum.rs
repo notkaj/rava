@@ -1,4 +1,6 @@
-use crate::capture::capturer::{Capturer, capture, default_capturer};
+use crate::capture::capturer::{
+    Capturer, capture, default_capturer, default_interpolated_capturer,
+};
 use crate::fft::Fft;
 
 pub struct Spectrum {
@@ -19,7 +21,27 @@ impl Spectrum {
         let capturer = default_capturer();
         capturer.init().expect("Error in Capturer Initialization");
         let amps = vec![0; ranges];
-        let fft = Fft::default();
+        let fft = Default::default();
+        let scale = DEFAULT_SCALE;
+        Self {
+            capturer,
+            ranges,
+            amps,
+            scale,
+            fft,
+        }
+    }
+
+    pub fn new_stereo(ranges: usize) -> Self {
+        let capturer = default_interpolated_capturer();
+        capturer
+            .init()
+            .expect("Error in Interpolated Capturer Initialization");
+        if capturer.channels() != 2 {
+            panic!("Attemped stereo playback without 2 channels");
+        }
+        let amps = vec![0; ranges];
+        let fft = Default::default();
         let scale = DEFAULT_SCALE;
         Self {
             capturer,
