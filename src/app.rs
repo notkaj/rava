@@ -54,6 +54,18 @@ impl App {
                     AppEvent::RemoveBar => self.visualizer.remove_bar(),
                     AppEvent::IncrementScale => self.visualizer.increment_scale(),
                     AppEvent::DecrementScale => self.visualizer.decrement_scale(),
+                    AppEvent::ShowStats => {
+                        self.visualizer.show_stats = true;
+                        self.visualizer.show_keys = false;
+                    }
+                    AppEvent::ShowKeys => {
+                        self.visualizer.show_stats = false;
+                        self.visualizer.show_keys = true;
+                    }
+                    AppEvent::ClosePopup => {
+                        self.visualizer.show_stats = false;
+                        self.visualizer.show_keys = false;
+                    }
                 },
             }
         }
@@ -71,6 +83,9 @@ impl App {
             KeyCode::Char('h') => self.events.send(AppEvent::RemoveBar),
             KeyCode::Char('k') => self.events.send(AppEvent::IncrementScale),
             KeyCode::Char('j') => self.events.send(AppEvent::DecrementScale),
+            KeyCode::Char('s') => self.events.send(AppEvent::ShowStats),
+            KeyCode::Char('?') => self.events.send(AppEvent::ShowKeys),
+            KeyCode::Char('c') => self.events.send(AppEvent::ClosePopup),
             // Other handlers you could add here.
             _ => {}
         }

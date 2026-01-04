@@ -11,6 +11,8 @@ pub struct Visualizer<T: Filter> {
     spectrum: Spectrum,
     out: Vec<u32>,
     filter: T,
+    pub show_stats: bool,
+    pub show_keys: bool,
 }
 
 impl<T: Filter + Default> Default for Visualizer<T> {
@@ -28,6 +30,8 @@ impl<T: Filter> Visualizer<T> {
             spectrum,
             out,
             filter,
+            show_stats: false,
+            show_keys: false,
         }
     }
 
@@ -61,7 +65,18 @@ impl<T: Filter> Visualizer<T> {
     // fn color(&mut self, color: Color) {
     //     self.color = color;
     // }
-    //
+
+    pub fn sample_rate(&self) -> usize {
+        self.spectrum.sample_rate()
+    }
+
+    pub fn channels(&self) -> usize {
+        self.spectrum.channels()
+    }
+
+    pub fn sample_len(&self) -> usize {
+        self.spectrum.sample_len
+    }
 
     pub fn bars(&self) -> usize {
         self.spectrum.ranges

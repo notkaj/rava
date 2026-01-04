@@ -5,6 +5,7 @@ pub mod capture;
 pub mod event;
 pub mod fft;
 mod filter;
+pub mod popup;
 pub mod spectrum;
 pub mod ui;
 pub mod visualizer;

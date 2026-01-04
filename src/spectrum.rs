@@ -9,7 +9,7 @@ pub struct Spectrum {
     pub amps: Vec<u32>,
     scale: f32, // should be moved out to Visualizer?
     fft: Fft,
-    sample_len: usize,
+    pub sample_len: usize,
 }
 
 const RATIO: f32 = 0.10;

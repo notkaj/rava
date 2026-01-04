@@ -37,6 +37,9 @@ pub enum AppEvent {
     DecrementScale,
     AddBar,
     RemoveBar,
+    ShowStats,
+    ShowKeys,
+    ClosePopup,
 }
 
 /// Terminal event handler.
