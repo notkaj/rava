@@ -103,6 +103,7 @@ impl Widget for &StatsPopup {
 
 impl Widget for &KeysPopup {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        //TODO: move all this into a const or something
         let text = Text::from(vec![
             Line::from("h -> decrease bars"),
             Line::from("j -> decrease scale"),
@@ -111,6 +112,7 @@ impl Widget for &KeysPopup {
             Line::from("? -> show keys"),
             Line::from("s -> show stats"),
             Line::from("c -> close popup"),
+            Line::from("q -> close app"),
         ]);
         let p = Paragraph::new(text)
             .style(Style::default().fg(Color::Yellow))
