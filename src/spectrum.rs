@@ -1,6 +1,6 @@
-use crate::capture::capturer::{
-    Capturer, capture, default_capturer, default_interpolated_capturer,
-};
+use std::time::Duration;
+
+use crate::capture::capturer::{Capturer, capture, default_capturer, default_interleaved_capturer};
 use crate::fft::Fft;
 
 pub struct Spectrum {
@@ -9,11 +9,12 @@ pub struct Spectrum {
     pub amps: Vec<u32>,
     scale: f32, // should be moved out to Visualizer?
     fft: Fft,
+    sample_len: usize,
 }
 
 const RATIO: f32 = 0.10;
 const OFFSET: usize = 0;
-const DEFAULT_SCALE: f32 = 16.0;
+const DEFAULT_SCALE: f32 = 24.0;
 
 impl Spectrum {
     pub fn new(ranges: usize) -> Self {
@@ -21,7 +22,12 @@ impl Spectrum {
         let capturer = default_capturer();
         capturer.init().expect("Error in Capturer Initialization");
         let amps = vec![0; ranges];
-        let fft = Default::default();
+        let mut sample_len = capturer.buffer_size();
+        while sample_len == 0 {
+            sample_len = capturer.buffer_size();
+            std::thread::sleep(Duration::from_millis(100));
+        }
+        let fft = Fft::new(sample_len);
         let scale = DEFAULT_SCALE;
         Self {
             capturer,
@@ -29,17 +35,19 @@ impl Spectrum {
             amps,
             scale,
             fft,
+            sample_len,
         }
     }
 
     pub fn new_stereo(ranges: usize) -> Self {
-        let capturer = default_interpolated_capturer();
+        let capturer = default_interleaved_capturer();
         capturer
             .init()
             .expect("Error in Interpolated Capturer Initialization");
         if capturer.channels() != 2 {
             panic!("Attemped stereo playback without 2 channels");
         }
+        let sample_len = capturer.buffer_size();
         let amps = vec![0; ranges];
         let fft = Default::default();
         let scale = DEFAULT_SCALE;
@@ -49,15 +57,21 @@ impl Spectrum {
             amps,
             scale,
             fft,
+            sample_len,
         }
     }
 
     pub fn update(&mut self) {
         let sample = Spectrum::sample();
 
-        // TODO: create a more permanent solution for this
-        if sample.is_empty() || sample.len() != 2048 {
+        // TODO: i don't really like this
+        if sample.is_empty() {
             return;
+        }
+
+        if sample.len() != self.sample_len {
+            self.sample_len = sample.len();
+            self.fft = Fft::new(sample.len());
         }
 
         self.fft.place_input(sample.as_slice());

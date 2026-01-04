@@ -1,7 +1,7 @@
 use crate::capture::capturer::BUFFER;
 use crate::capture::capturer::Capturer;
+use crate::capture::capturer::ChannelFormat;
 use crate::capture::capturer::Error;
-use crate::capture::capturer::Interp;
 use bytemuck::cast_slice;
 use pipewire as pw;
 use pw::spa::param::format_utils;
@@ -16,25 +16,29 @@ use std::thread;
 #[derive(Default)]
 pub struct Pipewire {
     user_data: Arc<RwLock<UserData>>,
-    interp: Interp,
+    channel_format: ChannelFormat,
 }
 
 #[derive(Default)]
 struct UserData {
     format: spa::param::audio::AudioInfoRaw,
+    buffer_size: usize,
 }
 
 impl Pipewire {
-    pub fn new(interp: Interp) -> Self {
+    pub fn new(channel_format: ChannelFormat) -> Self {
         let user_data = Default::default();
-        Pipewire { user_data, interp }
+        Pipewire {
+            user_data,
+            channel_format,
+        }
     }
 }
 
 impl Capturer for Pipewire {
     fn init(&self) -> Result<(), Error> {
         let data = Arc::clone(&self.user_data);
-        let interp = self.interp;
+        let interp = self.channel_format;
         thread::spawn(move || pw_thread(data, interp));
         Ok(())
     }
@@ -46,9 +50,13 @@ impl Capturer for Pipewire {
     fn rate(&self) -> usize {
         self.user_data.read().unwrap().format.rate() as usize
     }
+
+    fn buffer_size(&self) -> usize {
+        self.user_data.read().unwrap().buffer_size
+    }
 }
 
-fn pw_thread(data: Arc<RwLock<UserData>>, interp: Interp) -> Result<(), Error> {
+fn pw_thread(data: Arc<RwLock<UserData>>, channel_format: ChannelFormat) -> Result<(), Error> {
     // init pipewire
     pipewire::init();
 
@@ -66,9 +74,9 @@ fn pw_thread(data: Arc<RwLock<UserData>>, interp: Interp) -> Result<(), Error> {
 
     let stream = pw::stream::StreamBox::new(&core, "rava-audio-capture", props)?;
 
-    let process_fn = match interp {
-        Interp::Averaged => averaged,
-        Interp::Interpolated => interpolated,
+    let process_fn = match channel_format {
+        ChannelFormat::Averaged => averaged,
+        ChannelFormat::Interleaved => interleaved,
     };
 
     let _listener = stream
@@ -139,21 +147,27 @@ fn averaged(stream: &Stream, user_data: &mut Arc<RwLock<UserData>>) {
         return;
     }
 
+    let user_guard = user_data.read().unwrap();
+    let channels = user_guard.format.channels() as usize;
+    let curr_buffer_size = user_guard.buffer_size;
+    drop(user_guard);
+
     let data = &mut datas[0];
-    let channels = user_data.read().unwrap().format.channels() as usize;
     let size = data.chunk().size() as usize;
 
     let type_size = mem::size_of::<f32>();
     let step = type_size * channels;
     let buffer_size = size / step;
 
+    let mut buffer_guard = BUFFER.write().unwrap();
+
     // TODO:probably don't need this conditional
-    if BUFFER.read().unwrap().len() != buffer_size {
-        BUFFER.write().unwrap().resize(buffer_size, 0.0);
+    if curr_buffer_size != buffer_size {
+        user_data.write().unwrap().buffer_size = buffer_size;
+        buffer_guard.resize(buffer_size, 0.0);
     }
 
     if let Some(samples) = data.data() {
-        let mut guard = BUFFER.write().unwrap();
         for start in (0..size).step_by(step) {
             let end = start + step;
             let sample = &samples[start..end];
@@ -168,7 +182,7 @@ fn averaged(stream: &Stream, user_data: &mut Arc<RwLock<UserData>>) {
             // eprintln!("buffer index to write: {}", start / step);
             // eprintln!();
 
-            guard[start / step] = avg;
+            buffer_guard[start / step] = avg;
         }
         // println!(
         //     "Buffer cap after write: {}",
@@ -177,8 +191,7 @@ fn averaged(stream: &Stream, user_data: &mut Arc<RwLock<UserData>>) {
     }
 }
 
-#[allow(dead_code)]
-fn interpolated(stream: &Stream, _: &mut Arc<RwLock<UserData>>) {
+fn interleaved(stream: &Stream, _: &mut Arc<RwLock<UserData>>) {
     let mut buffer = stream.dequeue_buffer().unwrap();
     let datas = buffer.datas_mut();
     if datas.is_empty() {
