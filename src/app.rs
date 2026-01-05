@@ -1,6 +1,6 @@
 use crate::event::{AppEvent, Event, EventHandler};
 use crate::filter::NormalFilter;
-use crate::visualizer::Visualizer;
+use crate::visualizer::{Mode, Visualizer};
 use ratatui::{
     DefaultTerminal,
     crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
@@ -55,16 +55,13 @@ impl App {
                     AppEvent::IncrementScale => self.visualizer.increment_scale(),
                     AppEvent::DecrementScale => self.visualizer.decrement_scale(),
                     AppEvent::ShowStats => {
-                        self.visualizer.show_stats = true;
-                        self.visualizer.show_keys = false;
+                        self.visualizer.mode = Mode::ShowStats;
                     }
                     AppEvent::ShowKeys => {
-                        self.visualizer.show_stats = false;
-                        self.visualizer.show_keys = true;
+                        self.visualizer.mode = Mode::ShowKeys;
                     }
                     AppEvent::ClosePopup => {
-                        self.visualizer.show_stats = false;
-                        self.visualizer.show_keys = false;
+                        self.visualizer.mode = Mode::Default;
                     }
                 },
             }
@@ -74,18 +71,24 @@ impl App {
 
     /// Handles the key events and updates the state of [`App`].
     pub fn handle_key_events(&mut self, key_event: KeyEvent) -> color_eyre::Result<()> {
-        match key_event.code {
-            KeyCode::Esc | KeyCode::Char('q') => self.events.send(AppEvent::Quit),
-            KeyCode::Char('c' | 'C') if key_event.modifiers == KeyModifiers::CONTROL => {
+        let mode = &self.visualizer.mode;
+        match (mode, key_event.code) {
+            (Mode::Default, KeyCode::Char('q')) => self.events.send(AppEvent::Quit),
+            (Mode::Default, KeyCode::Char('c' | 'C'))
+                if key_event.modifiers == KeyModifiers::CONTROL =>
+            {
                 self.events.send(AppEvent::Quit)
             }
-            KeyCode::Char('l') => self.events.send(AppEvent::AddBar),
-            KeyCode::Char('h') => self.events.send(AppEvent::RemoveBar),
-            KeyCode::Char('k') => self.events.send(AppEvent::IncrementScale),
-            KeyCode::Char('j') => self.events.send(AppEvent::DecrementScale),
-            KeyCode::Char('s') => self.events.send(AppEvent::ShowStats),
-            KeyCode::Char('?') => self.events.send(AppEvent::ShowKeys),
-            KeyCode::Char('c') => self.events.send(AppEvent::ClosePopup),
+            (Mode::Default, KeyCode::Char('l')) => self.events.send(AppEvent::AddBar),
+            (Mode::Default, KeyCode::Char('h')) => self.events.send(AppEvent::RemoveBar),
+            (Mode::Default, KeyCode::Char('k')) => self.events.send(AppEvent::IncrementScale),
+            (Mode::Default, KeyCode::Char('j')) => self.events.send(AppEvent::DecrementScale),
+            (Mode::Default, KeyCode::Char('s')) => self.events.send(AppEvent::ShowStats),
+            (Mode::Default, KeyCode::Char('?')) => self.events.send(AppEvent::ShowKeys),
+            (Mode::ShowStats, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
+            (Mode::ShowKeys, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
+            (Mode::ColorPick, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
+
             // Other handlers you could add here.
             _ => {}
         }

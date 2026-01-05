@@ -6,13 +6,10 @@ use ratatui::{
     widgets::{Bar, BarChart, BarGroup, Block, BorderType, Borders, Clear, Paragraph, Widget},
 };
 
-use crate::filter::Filter;
 use crate::popup::{KeysPopup, StatsPopup};
 use crate::visualizer::Visualizer;
-use crate::{
-    app::App,
-    popup::{HORIZ_PERCENT, VERT_PERCENT},
-};
+use crate::{app::App, popup::HORIZ_PERCENT};
+use crate::{filter::Filter, visualizer::Mode};
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
@@ -63,27 +60,28 @@ impl<T: Filter> Widget for &Visualizer<T> {
 
         chart.render(area, buf);
 
-        if self.show_stats || self.show_keys {
-            let vertical =
-                Layout::vertical([Constraint::Percentage(VERT_PERCENT)]).flex(Flex::Center);
-            let horizontal =
-                Layout::horizontal([Constraint::Percentage(HORIZ_PERCENT)]).flex(Flex::Center);
-            let [area] = vertical.areas(area);
-            let [area] = horizontal.areas(area);
-            Clear.render(area, buf); // cool effect if you comment this line out
-            if self.show_stats {
+        match self.mode {
+            Mode::Default => (),
+            Mode::ShowStats => {
                 let popup = StatsPopup::new(self.sample_rate(), self.sample_len(), self.channels());
                 popup.render(area, buf);
-            } else {
+            }
+            Mode::ShowKeys => {
                 let popup = KeysPopup::new();
                 popup.render(area, buf);
-            };
+            }
+            Mode::ColorPick => (),
         }
     }
 }
 
 impl Widget for &StatsPopup {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let vertical = Layout::vertical([Constraint::Length(5)]).flex(Flex::Center);
+        let horizontal =
+            Layout::horizontal([Constraint::Percentage(HORIZ_PERCENT)]).flex(Flex::Center);
+        let [area] = vertical.areas(area);
+        let [area] = horizontal.areas(area);
         let text = Text::from(vec![
             Line::from(format!("Sample Rate: {}", self.sample_rate)),
             Line::from(format!("Sample Size: {}", self.sample_len)),
@@ -97,12 +95,18 @@ impl Widget for &StatsPopup {
                     .title("Stats")
                     .border_type(BorderType::Rounded),
             );
+        Clear.render(area, buf); // cool effect if you comment this line out
         p.render(area, buf);
     }
 }
 
 impl Widget for &KeysPopup {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let vertical = Layout::vertical([Constraint::Length(10)]).flex(Flex::Center);
+        let horizontal =
+            Layout::horizontal([Constraint::Percentage(HORIZ_PERCENT)]).flex(Flex::Center);
+        let [area] = vertical.areas(area);
+        let [area] = horizontal.areas(area);
         //TODO: move all this into a const or something
         let text = Text::from(vec![
             Line::from("h -> decrease bars"),
@@ -111,8 +115,8 @@ impl Widget for &KeysPopup {
             Line::from("k -> increase scale"),
             Line::from("? -> show keys"),
             Line::from("s -> show stats"),
-            Line::from("c -> close popup"),
             Line::from("q -> close app"),
+            Line::from("ESC -> close popup"),
         ]);
         let p = Paragraph::new(text)
             .style(Style::default().fg(Color::Yellow))

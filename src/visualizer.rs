@@ -11,8 +11,7 @@ pub struct Visualizer<T: Filter> {
     spectrum: Spectrum,
     out: Vec<u32>,
     filter: T,
-    pub show_stats: bool,
-    pub show_keys: bool,
+    pub mode: Mode,
 }
 
 impl<T: Filter + Default> Default for Visualizer<T> {
@@ -30,8 +29,7 @@ impl<T: Filter> Visualizer<T> {
             spectrum,
             out,
             filter,
-            show_stats: false,
-            show_keys: false,
+            mode: Default::default(),
         }
     }
 
@@ -81,4 +79,13 @@ impl<T: Filter> Visualizer<T> {
     pub fn bars(&self) -> usize {
         self.spectrum.ranges
     }
+}
+
+#[derive(Debug, Default)]
+pub enum Mode {
+    #[default]
+    Default,
+    ColorPick,
+    ShowStats,
+    ShowKeys,
 }
