@@ -4,10 +4,20 @@ use crate::filter::Filter;
 use crate::spectrum::Spectrum;
 
 const DEFAULT_BAR_COUNT: usize = 72;
-const DEFAULT_COLOR: Color = Color::Blue;
+const DEFAULT_COLOR_INDEX: usize = 5;
+pub const COLORS: [Color; 8] = [
+    Color::White,
+    Color::Black,
+    Color::Red,
+    Color::Green,
+    Color::Yellow,
+    Color::Blue,
+    Color::Magenta,
+    Color::Gray,
+];
 
 pub struct Visualizer<T: Filter> {
-    pub color: Color,
+    pub color_index: usize,
     spectrum: Spectrum,
     out: Vec<u32>,
     filter: T,
@@ -16,16 +26,16 @@ pub struct Visualizer<T: Filter> {
 
 impl<T: Filter + Default> Default for Visualizer<T> {
     fn default() -> Self {
-        Self::new(DEFAULT_BAR_COUNT, DEFAULT_COLOR, Default::default())
+        Self::new(DEFAULT_BAR_COUNT, DEFAULT_COLOR_INDEX, Default::default())
     }
 }
 
 impl<T: Filter> Visualizer<T> {
-    pub fn new(bars: usize, color: Color, filter: T) -> Self {
+    pub fn new(bars: usize, color_index: usize, filter: T) -> Self {
         let spectrum = Spectrum::new(bars);
         let out = vec![0; bars];
         Self {
-            color,
+            color_index,
             spectrum,
             out,
             filter,
@@ -60,9 +70,21 @@ impl<T: Filter> Visualizer<T> {
         self.spectrum.adjust_scale(-1.0);
     }
 
-    // fn color(&mut self, color: Color) {
-    //     self.color = color;
-    // }
+    pub fn color(&self) -> Color {
+        COLORS[self.color_index]
+    }
+
+    pub fn next_color(&mut self) {
+        if self.color_index < COLORS.len() - 1 {
+            self.color_index += 1
+        }
+    }
+
+    pub fn prev_color(&mut self) {
+        if self.color_index > 0 {
+            self.color_index -= 1
+        }
+    }
 
     pub fn sample_rate(&self) -> usize {
         self.spectrum.sample_rate()

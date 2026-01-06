@@ -1,19 +1,24 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Flex, Layout, Rect},
-    style::{Color, Style},
+    style::{Color, Modifier, Style},
     text::{Line, Text},
-    widgets::{Bar, BarChart, BarGroup, Block, BorderType, Borders, Clear, Paragraph, Widget},
+    widgets::{
+        Bar, BarChart, BarGroup, Block, BorderType, Borders, Clear, List, ListState, Paragraph,
+        StatefulWidget, Widget,
+    },
 };
 
-use crate::popup::{KeysPopup, StatsPopup};
 use crate::visualizer::Visualizer;
 use crate::{app::App, popup::HORIZ_PERCENT};
 use crate::{filter::Filter, visualizer::Mode};
+use crate::{
+    popup::{ColorPickPopup, KeysPopup, StatsPopup},
+    visualizer::COLORS,
+};
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        // Visualizer::default().render(area, buf)
         self.visualizer.render(area, buf);
     }
 }
@@ -55,22 +60,31 @@ impl<T: Filter> Widget for &Visualizer<T> {
         let height = area.height as u64;
 
         let bar_width = width / (bars + 1);
+        let color = self.color();
 
-        let chart = vertical_barchart(self, bar_width, height);
+        let chart = vertical_barchart(self, color, bar_width, height);
 
         chart.render(area, buf);
 
         match self.mode {
             Mode::Default => (),
             Mode::ShowStats => {
-                let popup = StatsPopup::new(self.sample_rate(), self.sample_len(), self.channels());
+                let popup = StatsPopup::new(
+                    color,
+                    self.sample_rate(),
+                    self.sample_len(),
+                    self.channels(),
+                );
                 popup.render(area, buf);
             }
             Mode::ShowKeys => {
-                let popup = KeysPopup::new();
+                let popup = KeysPopup::new(color);
                 popup.render(area, buf);
             }
-            Mode::ColorPick => (),
+            Mode::ColorPick => {
+                let popup = ColorPickPopup::new(color, COLORS.as_slice(), self.color_index);
+                popup.render(area, buf);
+            }
         }
     }
 }
@@ -88,7 +102,7 @@ impl Widget for &StatsPopup {
             Line::from(format!("Channels: {}", self.channels)),
         ]);
         let p = Paragraph::new(text)
-            .style(Style::default().fg(Color::Yellow))
+            .style(Style::default().fg(self.color))
             .block(
                 Block::default()
                     .borders(Borders::ALL)
@@ -102,7 +116,7 @@ impl Widget for &StatsPopup {
 
 impl Widget for &KeysPopup {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let vertical = Layout::vertical([Constraint::Length(10)]).flex(Flex::Center);
+        let vertical = Layout::vertical([Constraint::Length(11)]).flex(Flex::Center);
         let horizontal =
             Layout::horizontal([Constraint::Percentage(HORIZ_PERCENT)]).flex(Flex::Center);
         let [area] = vertical.areas(area);
@@ -115,30 +129,59 @@ impl Widget for &KeysPopup {
             Line::from("k -> increase scale"),
             Line::from("? -> show keys"),
             Line::from("s -> show stats"),
+            Line::from("c -> show colors"),
             Line::from("q -> close app"),
             Line::from("ESC -> close popup"),
         ]);
         let p = Paragraph::new(text)
-            .style(Style::default().fg(Color::Yellow))
+            .style(Style::default().fg(self.color))
             .block(
                 Block::default()
                     .borders(Borders::ALL)
                     .title("Keys")
                     .border_type(BorderType::Rounded),
             );
+        Clear.render(area, buf);
         p.render(area, buf);
+    }
+}
+
+impl Widget for &ColorPickPopup {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let vertical = Layout::vertical([Constraint::Length(10)]).flex(Flex::Center);
+        let horizontal =
+            Layout::horizontal([Constraint::Percentage(HORIZ_PERCENT)]).flex(Flex::Center);
+        let [area] = vertical.areas(area);
+        let [area] = horizontal.areas(area);
+        let list = List::new(self.colors.iter().map(|c| c.to_string()))
+            .style(Style::default().fg(self.color))
+            .highlight_style(Modifier::REVERSED)
+            .highlight_symbol("> ")
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Colors")
+                    .border_type(BorderType::Rounded),
+            );
+
+        let index = self.index;
+        let mut list_state = ListState::default().with_selected(Some(index));
+
+        Clear.render(area, buf);
+        StatefulWidget::render(list, area, buf, &mut list_state);
     }
 }
 
 fn vertical_barchart<T: Filter>(
     vis: &Visualizer<T>,
+    color: Color,
     bar_width: u16,
     height: u64,
 ) -> BarChart<'static> {
     let bars: Vec<Bar> = vis
         .output()
         .iter()
-        .map(|amp| vertical_bar(*amp, vis.color))
+        .map(|amp| vertical_bar(*amp, color))
         .collect();
     BarChart::default()
         .data(BarGroup::default().bars(&bars))

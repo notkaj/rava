@@ -60,8 +60,17 @@ impl App {
                     AppEvent::ShowKeys => {
                         self.visualizer.mode = Mode::ShowKeys;
                     }
+                    AppEvent::ShowColors => {
+                        self.visualizer.mode = Mode::ColorPick;
+                    }
                     AppEvent::ClosePopup => {
                         self.visualizer.mode = Mode::Default;
+                    }
+                    AppEvent::NextColor => {
+                        self.visualizer.next_color();
+                    }
+                    AppEvent::PrevColor => {
+                        self.visualizer.prev_color();
                     }
                 },
             }
@@ -74,9 +83,7 @@ impl App {
         let mode = &self.visualizer.mode;
         match (mode, key_event.code) {
             (Mode::Default, KeyCode::Char('q')) => self.events.send(AppEvent::Quit),
-            (Mode::Default, KeyCode::Char('c' | 'C'))
-                if key_event.modifiers == KeyModifiers::CONTROL =>
-            {
+            (_, KeyCode::Char('c' | 'C')) if key_event.modifiers == KeyModifiers::CONTROL => {
                 self.events.send(AppEvent::Quit)
             }
             (Mode::Default, KeyCode::Char('l')) => self.events.send(AppEvent::AddBar),
@@ -85,9 +92,12 @@ impl App {
             (Mode::Default, KeyCode::Char('j')) => self.events.send(AppEvent::DecrementScale),
             (Mode::Default, KeyCode::Char('s')) => self.events.send(AppEvent::ShowStats),
             (Mode::Default, KeyCode::Char('?')) => self.events.send(AppEvent::ShowKeys),
+            (Mode::Default, KeyCode::Char('c')) => self.events.send(AppEvent::ShowColors),
             (Mode::ShowStats, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
             (Mode::ShowKeys, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
             (Mode::ColorPick, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
+            (Mode::ColorPick, KeyCode::Char('j')) => self.events.send(AppEvent::NextColor),
+            (Mode::ColorPick, KeyCode::Char('k')) => self.events.send(AppEvent::PrevColor),
 
             // Other handlers you could add here.
             _ => {}

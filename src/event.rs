@@ -39,7 +39,10 @@ pub enum AppEvent {
     RemoveBar,
     ShowStats,
     ShowKeys,
+    ShowColors,
     ClosePopup,
+    NextColor,
+    PrevColor,
 }
 
 /// Terminal event handler.
