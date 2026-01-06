@@ -125,8 +125,8 @@ impl Widget for &KeysPopup {
         let text = Text::from(vec![
             Line::from("h -> decrease bars"),
             Line::from("j -> decrease scale"),
-            Line::from("l -> increase bars"),
             Line::from("k -> increase scale"),
+            Line::from("l -> increase bars"),
             Line::from("? -> show keys"),
             Line::from("s -> show stats"),
             Line::from("c -> show colors"),
