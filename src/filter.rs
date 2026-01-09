@@ -1,5 +1,9 @@
+use std::cell::RefCell;
+
+use crate::visualizer::Visualizer;
+
 pub trait Filter {
-    fn apply(&self, raw: &[u32], out: &mut [u32]);
+    fn apply(&self, input: &[u32], out: &mut [u32]);
 }
 
 pub struct NormalFilter {
@@ -26,9 +30,9 @@ impl NormalFilter {
 }
 
 impl Filter for NormalFilter {
-    fn apply(&self, raw: &[u32], out: &mut [u32]) {
-        for (i, e) in raw.iter().enumerate() {
-            if *e > out[i] + 2 {
+    fn apply(&self, input: &[u32], out: &mut [u32]) {
+        for (i, e) in input.iter().enumerate() {
+            if *e > out[i] {
                 let diff = *e - out[i];
                 out[i] += (diff as f32 * self.rate_of_increase) as u32;
                 // out[i] = *e;
@@ -37,6 +41,58 @@ impl Filter for NormalFilter {
                 let decay = (curr as f32 * self.rate_of_decay).ceil() as u32;
                 // let new = curr.saturating_sub(decay);
                 out[i] = curr - decay; // this doesn't overflow somehow
+            }
+        }
+    }
+}
+
+const DEFAULT_PEAK_DUR_TICKS: u8 = 5;
+
+pub struct ExperimentalFilter {
+    rate_of_decay: f32,
+    rate_of_increase: f32,
+    peak_dur_ticks: u8,
+    ticks: RefCell<Vec<u8>>,
+}
+
+impl ExperimentalFilter {
+    pub fn new(len: usize, rate_of_decay: f32, rate_of_increase: f32, peak_dur_ticks: u8) -> Self {
+        // TODO: this vec is never adjusted, so if the number of bars is
+        // ever increased during runtime, the program WILL panic
+        let ticks = RefCell::new(vec![0; len]);
+        Self {
+            rate_of_decay,
+            rate_of_increase,
+            peak_dur_ticks,
+            ticks,
+        }
+    }
+
+    pub fn new_default(len: usize) -> Self {
+        ExperimentalFilter::new(
+            len,
+            DEFAULT_RATE_OF_DECAY,
+            DEFAULT_RATE_OF_INCREASE,
+            DEFAULT_PEAK_DUR_TICKS,
+        )
+    }
+}
+
+impl Filter for ExperimentalFilter {
+    fn apply(&self, input: &[u32], out: &mut [u32]) {
+        for (i, e) in input.iter().enumerate() {
+            let entry = *e;
+            let tick = self.ticks.borrow()[i];
+            if tick == 0 && entry > out[i] {
+                // let diff = entry - out[i];
+                // out[i] += (diff as f32 * self.rate_of_increase) as u32;
+                out[i] = entry;
+                self.ticks.borrow_mut()[i] = self.peak_dur_ticks;
+            } else {
+                self.ticks.borrow_mut()[i] = tick.saturating_sub(1);
+                let curr = out[i];
+                let decay = (curr as f32 * self.rate_of_decay).ceil() as u32;
+                out[i] = curr - decay;
             }
         }
     }
@@ -63,8 +119,8 @@ impl SmoothFilter {
 
 impl Filter for SmoothFilter {
     // i haven't tested this at all
-    fn apply(&self, raw: &[u32], out: &mut [u32]) {
-        for (i, e) in raw.iter().enumerate() {
+    fn apply(&self, input: &[u32], out: &mut [u32]) {
+        for (i, e) in input.iter().enumerate() {
             let diff: i32 = *e as i32 - out[i] as i32;
             let change = diff as f32 * self.rate_of_diff;
             let new = out[i] as i32 + change as i32;

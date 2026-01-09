@@ -68,7 +68,8 @@ impl Spectrum {
         if sample.is_empty() {
             return;
         }
-
+        // TODO: or this. the prediction
+        // should almost never miss tho
         if sample.len() != self.sample_len {
             self.sample_len = sample.len();
             self.fft = Fft::new(sample.len());
@@ -77,7 +78,7 @@ impl Spectrum {
         self.fft.place_input(sample.as_slice());
         let transform = self.fft.transform();
 
-        let transform_len = transform.len();
+        let transform_len = transform.len(); // same len as sample.len() shrug
         let len = (transform_len as f32 * RATIO) as usize;
         let range_len = len / self.ranges;
 
