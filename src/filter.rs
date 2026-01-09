@@ -80,6 +80,7 @@ impl Filter for ExperimentalFilter {
                 out[i] = entry;
                 self.ticks.borrow_mut()[i] = self.peak_dur_ticks;
             } else {
+                // i don't think this needs to be saturated
                 self.ticks.borrow_mut()[i] = tick.saturating_sub(1);
                 let curr = out[i];
                 let decay = (curr as f32 * self.rate_of_decay).ceil() as u32;
