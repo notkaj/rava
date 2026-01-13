@@ -9,9 +9,9 @@ use ratatui::{
     },
 };
 
-use crate::visualizer::Visualizer;
 use crate::{app::App, popup::HORIZ_PERCENT};
 use crate::{filter::Filter, visualizer::Mode};
+use crate::{popup::InputPopup, visualizer::Visualizer};
 use crate::{
     popup::{ColorPickPopup, KeysPopup, StatsPopup},
     visualizer::COLORS,
@@ -83,6 +83,11 @@ impl<T: Filter> Widget for &Visualizer<T> {
             }
             Mode::ColorPick => {
                 let popup = ColorPickPopup::new(color, COLORS.as_slice(), self.color_index);
+                popup.render(area, buf);
+            }
+            Mode::ShowInput => {
+                let popup =
+                    InputPopup::new(color, self.input_max(), self.channels(), self.sample_rate());
                 popup.render(area, buf);
             }
         }
@@ -169,6 +174,42 @@ impl Widget for &ColorPickPopup {
 
         Clear.render(area, buf);
         StatefulWidget::render(list, area, buf, &mut list_state);
+    }
+}
+
+impl Widget for &InputPopup {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let vertical = Layout::vertical([Constraint::Length(4)]).flex(Flex::Center);
+        let horizontal =
+            Layout::horizontal([Constraint::Percentage(HORIZ_PERCENT)]).flex(Flex::Center);
+        let [area] = vertical.areas(area);
+        let [area] = horizontal.areas(area);
+
+        let b = Block::bordered()
+            .title("Input")
+            .style(Style::default().fg(self.color))
+            .border_type(BorderType::Rounded);
+
+        let inner = b.inner(area);
+        let text = Text::from(vec![Line::from(format!(
+            "Channels: {} | Rate: {}",
+            self.channels, self.rate
+        ))]);
+        let width = inner.width;
+        let chart = BarChart::horizontal(vec![
+            Bar::default()
+                .label(format!("{:<3} ", self.max))
+                .text_value("")
+                .value(self.max as u64),
+        ])
+        .max((width - 3) as u64 * 8);
+        let vert = Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]);
+        let [stats, max] = vert.areas::<2>(inner);
+
+        Clear.render(area, buf); // cool effect if you comment this line out
+        b.render(area, buf);
+        text.render(stats, buf);
+        chart.render(max, buf);
     }
 }
 

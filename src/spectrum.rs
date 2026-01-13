@@ -125,4 +125,8 @@ impl Spectrum {
     pub fn channels(&self) -> usize {
         self.capturer.channels()
     }
+
+    pub fn max(&self) -> Option<u32> {
+        self.amps.iter().max().copied()
+    }
 }

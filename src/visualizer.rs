@@ -108,6 +108,10 @@ impl<T: Filter> Visualizer<T> {
     pub fn bars(&self) -> usize {
         self.spectrum.ranges
     }
+
+    pub fn input_max(&self) -> u32 {
+        self.spectrum.max().unwrap_or_default()
+    }
 }
 
 #[derive(Debug, Default)]
@@ -117,4 +121,5 @@ pub enum Mode {
     ColorPick,
     ShowStats,
     ShowKeys,
+    ShowInput,
 }

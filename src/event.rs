@@ -43,6 +43,7 @@ pub enum AppEvent {
     ClosePopup,
     NextColor,
     PrevColor,
+    ShowInput,
 }
 
 /// Terminal event handler.

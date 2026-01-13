@@ -21,7 +21,6 @@ impl StatsPopup {
     }
 }
 
-#[derive(Default)]
 pub struct KeysPopup {
     pub color: Color,
 }
@@ -44,6 +43,24 @@ impl ColorPickPopup {
             colors,
             index,
             color,
+        }
+    }
+}
+
+pub struct InputPopup {
+    pub color: Color,
+    pub max: u32,
+    pub channels: usize,
+    pub rate: usize,
+}
+
+impl InputPopup {
+    pub fn new(color: Color, max: u32, channels: usize, rate: usize) -> Self {
+        Self {
+            color,
+            max,
+            channels,
+            rate,
         }
     }
 }

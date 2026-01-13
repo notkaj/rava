@@ -72,6 +72,9 @@ impl App {
                     AppEvent::PrevColor => {
                         self.visualizer.prev_color();
                     }
+                    AppEvent::ShowInput => {
+                        self.visualizer.mode = Mode::ShowInput;
+                    }
                 },
             }
         }
@@ -93,9 +96,8 @@ impl App {
             (Mode::Default, KeyCode::Char('s')) => self.events.send(AppEvent::ShowStats),
             (Mode::Default, KeyCode::Char('?')) => self.events.send(AppEvent::ShowKeys),
             (Mode::Default, KeyCode::Char('c')) => self.events.send(AppEvent::ShowColors),
-            (Mode::ShowStats, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
-            (Mode::ShowKeys, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
-            (Mode::ColorPick, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
+            (Mode::Default, KeyCode::Char('i')) => self.events.send(AppEvent::ShowInput),
+            (_, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
             (Mode::ColorPick, KeyCode::Char('j')) => self.events.send(AppEvent::NextColor),
             (Mode::ColorPick, KeyCode::Char('k')) => self.events.send(AppEvent::PrevColor),
 

@@ -69,7 +69,7 @@ fn pw_thread(data: Arc<RwLock<UserData>>, channel_format: ChannelFormat) -> Resu
         *pw::keys::MEDIA_CATEGORY => "Capture",
         *pw::keys::MEDIA_ROLE => "Music",
         *pw::keys::STREAM_CAPTURE_SINK => "true",
-
+        *pw::keys::NODE_LATENCY => "2048/48000",
     };
 
     let stream = pw::stream::StreamBox::new(&core, "rava-audio-capture", props)?;
