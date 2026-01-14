@@ -101,6 +101,7 @@ impl App {
             (_, KeyCode::Esc) => self.events.send(AppEvent::ClosePopup),
             (Mode::ColorPick, KeyCode::Char('j')) => self.events.send(AppEvent::NextColor),
             (Mode::ColorPick, KeyCode::Char('k')) => self.events.send(AppEvent::PrevColor),
+            (Mode::ColorPick, KeyCode::Enter) => self.events.send(AppEvent::ClosePopup),
 
             // Other handlers you could add here.
             _ => {}
