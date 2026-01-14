@@ -90,7 +90,11 @@ impl<T: Filter> Visualizer<T> {
     }
 
     pub fn prev_color(&mut self) {
-        self.color_index = (self.color_index - 1) % COLORS.len()
+        if self.color_index > 0 {
+            self.color_index -= 1;
+        } else {
+            self.color_index = COLORS.len() - 1;
+        }
     }
 
     pub fn sample_rate(&self) -> usize {
