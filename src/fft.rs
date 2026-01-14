@@ -40,7 +40,7 @@ impl Fft {
         self.output.iter().map(|c| c.norm()).collect()
     }
 
-    pub async fn init(self) {
+    pub fn init(self) {
         tokio::spawn(async {
             self.fft_thread().await;
         });

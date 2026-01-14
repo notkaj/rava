@@ -50,8 +50,8 @@ impl<T: Filter> Visualizer<T> {
         }
     }
 
-    pub async fn init(&mut self) {
-        self.spectrum.init().await;
+    pub fn init(&mut self) {
+        self.spectrum.init();
     }
 
     pub fn update(&mut self) {

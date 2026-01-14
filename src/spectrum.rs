@@ -39,7 +39,7 @@ impl Spectrum {
         }
     }
 
-    pub async fn init(&mut self) {
+    pub fn init(&mut self) {
         self.capturer
             .init()
             .expect("Error in Capturer Initialization");
@@ -53,7 +53,7 @@ impl Spectrum {
         self.tx = Some(tx);
         self.rx = Some(rx);
         let fft = Fft::new(self.sample_len, tx_to_fft, rx_from_fft);
-        fft.init().await;
+        fft.init();
     }
 
     // pub fn new_stereo(ranges: usize) -> Self {
