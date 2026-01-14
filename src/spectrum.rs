@@ -48,11 +48,12 @@ impl Spectrum {
             sample_len = self.capturer.buffer_size();
             std::thread::sleep(Duration::from_millis(100));
         }
-        let (tx, rx_from_fft) = mpsc::channel(1);
-        let (tx_to_fft, rx) = mpsc::channel(1);
+        let (tx, rx_from_spectrum) = mpsc::channel(1);
+        let (tx_to_spectrum, rx) = mpsc::channel(1);
+        let _ = tx.try_send(vec![0.0; sample_len]);
         self.tx = Some(tx);
         self.rx = Some(rx);
-        let fft = Fft::new(self.sample_len, tx_to_fft, rx_from_fft);
+        let fft = Fft::new(self.sample_len, tx_to_spectrum, rx_from_spectrum);
         fft.init();
     }
 
@@ -88,19 +89,23 @@ impl Spectrum {
             panic!("fft receiver not initialized")
         };
 
+        let Ok(transform) = rx.try_recv() else {
+            // TODO: recover form this
+            panic!("ui and fft out of sync");
+        };
+
+        let transform_len = transform.len();
         let sample = Spectrum::sample();
         if sample.is_empty() {
+            // maybe handle if this errors
+            let _ = tx.try_send(vec![0.0; transform_len]);
             return;
         }
+
         if tx.try_send(sample).is_err() {
             panic!("fft reviecer dropped or full");
         }
 
-        let Ok(transform) = rx.try_recv() else {
-            return;
-        };
-
-        let transform_len = transform.len(); // same len as sample.len() shrug
         let len = (transform_len as f32 * RATIO) as usize;
         let range_len = len / self.ranges;
 
