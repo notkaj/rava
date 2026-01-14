@@ -50,6 +50,10 @@ impl<T: Filter> Visualizer<T> {
         }
     }
 
+    pub async fn init(&mut self) {
+        self.spectrum.init().await;
+    }
+
     pub fn update(&mut self) {
         self.spectrum.update();
         self.filter.apply(&self.spectrum.amps, &mut self.out);
@@ -82,15 +86,11 @@ impl<T: Filter> Visualizer<T> {
     }
 
     pub fn next_color(&mut self) {
-        if self.color_index < COLORS.len() - 1 {
-            self.color_index += 1
-        }
+        self.color_index = (self.color_index + 1) % COLORS.len()
     }
 
     pub fn prev_color(&mut self) {
-        if self.color_index > 0 {
-            self.color_index -= 1
-        }
+        self.color_index = (self.color_index - 1) % COLORS.len()
     }
 
     pub fn sample_rate(&self) -> usize {
