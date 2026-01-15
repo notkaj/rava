@@ -1,7 +1,8 @@
 use ratatui::style::Color;
 
 use crate::filter::{ExperimentalFilter, Filter};
-use crate::spectrum::Spectrum;
+use crate::spectrum::average::AverageSpectrum;
+use crate::spectrum::spectral::Spectral;
 
 const DEFAULT_BAR_COUNT: usize = 72;
 const DEFAULT_COLOR_INDEX: usize = 5;
@@ -18,7 +19,7 @@ pub const COLORS: [Color; 8] = [
 
 pub struct Visualizer<T: Filter> {
     pub color_index: usize,
-    spectrum: Spectrum,
+    spectrum: AverageSpectrum,
     out: Vec<u32>,
     filter: T,
     pub mode: Mode,
@@ -39,7 +40,7 @@ impl Default for Visualizer<ExperimentalFilter> {
 
 impl<T: Filter> Visualizer<T> {
     pub fn new(bars: usize, color_index: usize, filter: T) -> Self {
-        let spectrum = Spectrum::new(bars);
+        let spectrum = AverageSpectrum::new(bars);
         let out = vec![0; bars];
         Self {
             color_index,

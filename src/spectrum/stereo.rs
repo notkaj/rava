@@ -1,12 +1,13 @@
+use std::cmp;
 use std::time::Duration;
 
 use tokio::sync::mpsc::{self, Receiver, Sender};
 
 use crate::capture::capturer::{Capturer, capture, default_interleaved_capturer};
 use crate::fft::Fft;
-use crate::spectrum::spectrum::Spectrum;
+use crate::spectrum::spectral::Spectral;
 
-pub struct AverageSpectrum {
+pub struct StereoSpectrum {
     capturer: Box<dyn Capturer>,
     pub ranges: usize,
     pub left_amps: Vec<u32>,
@@ -23,7 +24,7 @@ const RATIO: f32 = 0.10;
 const OFFSET: usize = 0;
 const DEFAULT_SCALE: f32 = 48.0;
 
-impl AverageSpectrum {
+impl StereoSpectrum {
     pub fn new(ranges: usize) -> Self {
         // eprintln!("Initializeing Audio Stream");
         let capturer = default_interleaved_capturer();
@@ -48,8 +49,22 @@ impl AverageSpectrum {
             sample_len,
         }
     }
+
+    fn sample() -> (Vec<f32>, Vec<f32>) {
+        // TODO: handle errors
+        let cap = capture().unwrap();
+        let len = cap.len() / 2;
+        let mut left = vec![0.0; len];
+        let mut right = vec![0.0; len];
+        for i in 0..len {
+            left[i] = cap[i * 2];
+            right[i] = cap[i * 2 + 1];
+        }
+        (left, right)
+    }
 }
-impl Spectrum for AverageSpectrum {
+
+impl Spectral for StereoSpectrum {
     fn init(&mut self) {
         self.capturer
             .init()
@@ -88,8 +103,6 @@ impl Spectrum for AverageSpectrum {
     }
 
     fn update(&mut self) {
-        // self.fft.place_input(sample.as_slice());
-        // let transform = self.fft.transform();
         let Some(left_tx) = &self.left_tx else {
             panic!("fft sender not initialized")
         };
@@ -106,7 +119,7 @@ impl Spectrum for AverageSpectrum {
             panic!("fft sender not initialized");
         };
 
-        let Some(right_rx) = &self.right_rx else {
+        let Some(right_rx) = self.right_rx.as_mut() else {
             panic!("fft receiver not initialized")
         };
 
@@ -115,15 +128,25 @@ impl Spectrum for AverageSpectrum {
         };
 
         let transform_len = left_transform.len();
-        let sample = Spectrum::sample();
-        if sample.is_empty() {
+        let (left_sample, right_sample) = StereoSpectrum::sample();
+
+        if left_sample.is_empty() {
             // maybe handle if this errors
-            let _ = tx.try_send(vec![0.0; transform_len]);
+            let _ = left_tx.try_send(vec![0.0; transform_len]);
             return;
         }
 
-        if tx.try_send(sample).is_err() {
+        if right_sample.is_empty() {
+            let _ = right_tx.try_send(vec![0.0; transform_len]);
+            return;
+        }
+
+        if left_tx.try_send(left_sample).is_err() {
             panic!("fft reviecer dropped or full");
+        }
+
+        if right_tx.try_send(right_sample).is_err() {
+            panic!("fft receiver dropped or full");
         }
 
         let len = (transform_len as f32 * RATIO) as usize;
@@ -132,27 +155,27 @@ impl Spectrum for AverageSpectrum {
         for i in 0..self.ranges {
             let start = (i + OFFSET) * range_len;
             let end = start + range_len;
-            let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
-            let root = avg.sqrt();
-            self.amps[i] = (root * self.scale) as u32;
+            let left_avg = left_transform[start..end].iter().sum::<f32>() / range_len as f32;
+            let right_avg = right_transform[start..end].iter().sum::<f32>() / range_len as f32;
+            let left_root = left_avg.sqrt();
+            let right_root = right_avg.sqrt();
+            self.left_amps[i] = (left_root * self.scale) as u32;
+            self.right_amps[i] = (right_root * self.scale) as u32;
         }
-    }
-
-    fn sample() -> Vec<f32> {
-        // TODO: handle errors
-        capture().unwrap()
     }
 
     fn add_range(&mut self) {
         self.ranges += 1;
-        self.amps = vec![0; self.ranges];
+        self.left_amps = vec![0; self.ranges];
+        self.right_amps = vec![0; self.ranges];
         // let len = (self.ranges - 1) * 2;
         // self.capturer = Capturer::new(len);
     }
 
     fn remove_range(&mut self) {
         self.ranges -= 1;
-        self.amps = vec![0; self.ranges];
+        self.left_amps = vec![0; self.ranges];
+        self.right_amps = vec![0; self.ranges];
         // let len = (self.ranges - 1) * 2;
         // self.capturer = Capturer::new(len);
     }
@@ -174,6 +197,8 @@ impl Spectrum for AverageSpectrum {
     }
 
     fn max(&self) -> Option<u32> {
-        self.amps.iter().max().copied()
+        let left = self.left_amps.iter().max().copied();
+        let right = self.right_amps.iter().max().copied();
+        cmp::max(left, right)
     }
 }

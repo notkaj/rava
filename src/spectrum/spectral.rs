@@ -1,7 +1,6 @@
-pub trait Spectrum {
+pub trait Spectral {
     fn init(&mut self);
     fn update(&mut self);
-    fn sample() -> Vec<f32>;
     fn add_range(&mut self);
     fn remove_range(&mut self);
     fn adjust_scale(&mut self, value: f32);
