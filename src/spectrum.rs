@@ -1,3 +1,3 @@
-mod average;
-mod spectrum;
-mod stereo;
+pub mod average;
+pub mod spectral;
+pub mod stereo;
