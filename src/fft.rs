@@ -6,7 +6,6 @@ pub struct Fft {
     fft: Arc<dyn RealToComplex<f32> + 'static>,
     tx: Sender<Vec<f32>>,
     rx: Receiver<Vec<f32>>,
-    input: Vec<f32>,
     output: Vec<Complex<f32>>,
 }
 
@@ -15,26 +14,20 @@ impl Fft {
         let mut planner = RealFftPlanner::<f32>::new();
         let fft = planner.plan_fft_forward(size);
 
-        let input = fft.make_input_vec();
         let output = fft.make_output_vec();
 
         Self {
             fft,
             tx,
             rx,
-            input,
+            // input,
             output,
         }
     }
 
-    pub fn place_input(&mut self, input: &[f32]) {
-        // self.input.borrow_mut().copy_from_slice(input);
-        self.input.copy_from_slice(input);
-    }
-
-    pub fn transform(&mut self) -> Vec<f32> {
+    pub fn transform(&mut self, input: &mut Vec<f32>) -> Vec<f32> {
         self.fft
-            .process(self.input.as_mut_slice(), self.output.as_mut_slice())
+            .process(input.as_mut_slice(), self.output.as_mut_slice())
             .unwrap();
 
         self.output.iter().map(|c| c.norm()).collect()
@@ -48,12 +41,12 @@ impl Fft {
 
     async fn fft_thread(mut self) {
         loop {
-            match self.rx.recv().await {
-                Some(v) => self.input = v,
+            let mut input = match self.rx.recv().await {
+                Some(v) => v,
                 None => break,
-            }
+            };
 
-            let amps = self.transform();
+            let amps = self.transform(&mut input);
 
             if self.tx.send(amps).await.is_err() {
                 break;
