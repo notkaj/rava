@@ -45,6 +45,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+      - name: Install libpipewire
+        run: sudo apt install libpipewire-0.3-0 libpipewire-0.3-dev libspa-0.2-modules
       - name: Run clippy action
         uses: clechasseur/rs-clippy-check@v3
       - name: Cache Cargo dependencies
