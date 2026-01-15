@@ -31,29 +31,6 @@ impl<T: Filter> Widget for &Visualizer<T> {
     // - https://docs.rs/ratatui/latest/ratatui/widgets/index.html
     // - https://github.com/ratatui/ratatui/tree/master/examples
     fn render(self, area: Rect, buf: &mut Buffer) {
-        // let block = Block::bordered()
-        //     .title("rava")
-        //     .title_alignment(Alignment::Center)
-        //     .border_type(BorderType::Rounded);
-
-        // let text = format!(
-        //     "This is a tui template.\n\
-        //         Press `Esc`, `Ctrl-C` or `q` to stop running.\n\
-        //         Press left and right to increment and decrement the counter respectively.\n\
-        //         Counter: {}",
-        //     self.counter
-        // );
-
-        // let paragraph = Paragraph::new(text)
-        //     // .block(block)
-        //     .fg(Color::Cyan)
-        //     // .bg(Color::Black)
-        //     .centered();
-        //
-        // paragraph.render(area, buf);
-
-        // let layout = Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).spacing(1);
-
         // TODO: maybe only recalculate this on terminal resize?
         let bars = self.bars() as u16;
         let width = area.width;
