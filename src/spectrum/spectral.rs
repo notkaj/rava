@@ -1,5 +1,5 @@
 pub trait Spectral {
-    fn init(&mut self);
+    // fn init(&mut self);
     fn update(&mut self);
     fn add_range(&mut self);
     fn remove_range(&mut self);
