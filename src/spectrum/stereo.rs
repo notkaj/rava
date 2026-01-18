@@ -13,10 +13,10 @@ pub struct StereoSpectrum {
     pub left_amps: Vec<u32>,
     pub right_amps: Vec<u32>,
     scale: f32, // should be moved out to Visualizer?
-    left_tx: Option<Sender<Vec<f32>>>,
-    left_rx: Option<Receiver<Vec<f32>>>,
-    right_tx: Option<Sender<Vec<f32>>>,
-    right_rx: Option<Receiver<Vec<f32>>>,
+    left_tx: Sender<Vec<f32>>,
+    left_rx: Receiver<Vec<f32>>,
+    right_tx: Sender<Vec<f32>>,
+    right_rx: Receiver<Vec<f32>>,
     pub sample_len: usize,
 }
 
@@ -30,13 +30,17 @@ impl StereoSpectrum {
         let capturer = default_interleaved_capturer();
         let left_amps = vec![0; ranges];
         let right_amps = vec![0; ranges];
-        let left_tx = None;
-        let left_rx = None;
-        let right_rx = None;
-        let right_tx = None;
+
+        let (left_tx, left_rx_from_spectrum) = mpsc::channel(1);
+        let (left_tx_to_spectrum, left_rx) = mpsc::channel(1);
+        let (right_tx, right_rx_from_spectrum) = mpsc::channel(1);
+        let (right_tx_to_spectrum, right_rx) = mpsc::channel(1);
         let sample_len = 2048;
+        let _ = left_tx.try_send(vec![0.0; sample_len]);
+        let _ = right_tx.try_send(vec![0.0; sample_len]);
+
         let scale = DEFAULT_SCALE;
-        Self {
+        let res = Self {
             capturer,
             ranges,
             left_amps,
@@ -47,7 +51,14 @@ impl StereoSpectrum {
             right_tx,
             right_rx,
             sample_len,
-        }
+        };
+        res.init(
+            left_rx_from_spectrum,
+            left_tx_to_spectrum,
+            right_rx_from_spectrum,
+            right_tx_to_spectrum,
+        );
+        res
     }
 
     fn sample() -> (Vec<f32>, Vec<f32>) {
@@ -62,10 +73,14 @@ impl StereoSpectrum {
         }
         (left, right)
     }
-}
 
-impl Spectral for StereoSpectrum {
-    fn init(&mut self) {
+    fn init(
+        &self,
+        left_rx_from_spectrum: Receiver<Vec<f32>>,
+        left_tx_to_spectrum: Sender<Vec<f32>>,
+        right_rx_from_spectrum: Receiver<Vec<f32>>,
+        right_tx_to_spectrum: Sender<Vec<f32>>,
+    ) {
         self.capturer
             .init()
             .expect("Error in Capturer Initialization");
@@ -78,52 +93,24 @@ impl Spectral for StereoSpectrum {
             panic!("Attempted stereo playback without 2 channels")
         }
 
-        let (left_tx, left_rx_from_spectrum) = mpsc::channel(1);
-        let (left_tx_to_spectrum, left_rx) = mpsc::channel(1);
-        let (right_tx, right_rx_from_spectrum) = mpsc::channel(1);
-        let (right_tx_to_spectrum, right_rx) = mpsc::channel(1);
-        let _ = left_tx.try_send(vec![0.0; sample_len]);
-        let _ = right_tx.try_send(vec![0.0; sample_len]);
-        self.left_tx = Some(left_tx);
-        self.left_rx = Some(left_rx);
-        self.right_tx = Some(right_tx);
-        self.right_rx = Some(right_rx);
-        let left_fft = Fft::new(
-            self.sample_len / 2,
-            left_tx_to_spectrum,
-            left_rx_from_spectrum,
-        );
-        let right_fft = Fft::new(
-            self.sample_len / 2,
-            right_tx_to_spectrum,
-            right_rx_from_spectrum,
-        );
+        let left_fft = Fft::new(sample_len / 2, left_tx_to_spectrum, left_rx_from_spectrum);
+        let right_fft = Fft::new(sample_len / 2, right_tx_to_spectrum, right_rx_from_spectrum);
         left_fft.init();
         right_fft.init();
     }
+}
 
+impl Spectral for StereoSpectrum {
     fn update(&mut self) {
-        let Some(left_tx) = &self.left_tx else {
-            panic!("fft sender not initialized")
-        };
-        let Some(left_rx) = self.left_rx.as_mut() else {
-            panic!("fft receiver not initialized")
-        };
-
-        let Ok(left_transform) = left_rx.try_recv() else {
+        // TODO: I reall hate that these are options. should move channel init to new().
+        // the real issue is that the fft must be moved out in the init function
+        // could init fft in new() but that seems weird
+        let Ok(left_transform) = self.left_rx.try_recv() else {
             // TODO: recover form this
             panic!("ui and fft out of sync");
         };
 
-        let Some(right_tx) = &self.right_tx else {
-            panic!("fft sender not initialized");
-        };
-
-        let Some(right_rx) = self.right_rx.as_mut() else {
-            panic!("fft receiver not initialized")
-        };
-
-        let Ok(right_transform) = right_rx.try_recv() else {
+        let Ok(right_transform) = self.right_rx.try_recv() else {
             panic!("ui and fft out of sync");
         };
 
@@ -132,20 +119,20 @@ impl Spectral for StereoSpectrum {
 
         if left_sample.is_empty() {
             // maybe handle if this errors
-            let _ = left_tx.try_send(vec![0.0; transform_len]);
+            let _ = self.left_tx.try_send(vec![0.0; transform_len]);
             return;
         }
 
         if right_sample.is_empty() {
-            let _ = right_tx.try_send(vec![0.0; transform_len]);
+            let _ = self.right_tx.try_send(vec![0.0; transform_len]);
             return;
         }
 
-        if left_tx.try_send(left_sample).is_err() {
+        if self.left_tx.try_send(left_sample).is_err() {
             panic!("fft reviecer dropped or full");
         }
 
-        if right_tx.try_send(right_sample).is_err() {
+        if self.right_tx.try_send(right_sample).is_err() {
             panic!("fft receiver dropped or full");
         }
 
