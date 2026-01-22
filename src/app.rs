@@ -1,6 +1,7 @@
 use crate::event::{AppEvent, Event, EventHandler};
 use crate::filter::NormalFilter;
-use crate::visualizer::{Mode, Visualizer};
+use crate::visualize::mono::MonoVisualizer;
+use crate::visualize::visual::Mode;
 use ratatui::{
     DefaultTerminal,
     crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
@@ -14,7 +15,7 @@ pub struct App {
     /// Event handler.
     pub events: EventHandler,
     /// Visualizer Widget
-    pub visualizer: Visualizer<NormalFilter>,
+    pub visualizer: MonoVisualizer<NormalFilter>,
 }
 
 impl Default for App {

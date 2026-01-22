@@ -57,8 +57,7 @@ impl StereoSpectrum {
             left_tx_to_spectrum,
             right_rx_from_spectrum,
             right_tx_to_spectrum,
-        );
-        res
+        )
     }
 
     fn sample() -> (Vec<f32>, Vec<f32>) {
@@ -75,12 +74,12 @@ impl StereoSpectrum {
     }
 
     fn init(
-        &self,
+        self,
         left_rx_from_spectrum: Receiver<Vec<f32>>,
         left_tx_to_spectrum: Sender<Vec<f32>>,
         right_rx_from_spectrum: Receiver<Vec<f32>>,
         right_tx_to_spectrum: Sender<Vec<f32>>,
-    ) {
+    ) -> Self {
         self.capturer
             .init()
             .expect("Error in Capturer Initialization");
@@ -97,6 +96,7 @@ impl StereoSpectrum {
         let right_fft = Fft::new(sample_len / 2, right_tx_to_spectrum, right_rx_from_spectrum);
         left_fft.init();
         right_fft.init();
+        self
     }
 }
 

@@ -20,6 +20,12 @@ const RATIO: f32 = 0.10;
 const OFFSET: usize = 0;
 const DEFAULT_SCALE: f32 = 48.0;
 
+impl Default for AverageSpectrum {
+    fn default() -> Self {
+        AverageSpectrum::new(72)
+    }
+}
+
 impl AverageSpectrum {
     pub fn new(ranges: usize) -> Self {
         // eprintln!("Initializeing Audio Stream");

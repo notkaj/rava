@@ -8,7 +8,7 @@ mod filter;
 pub mod popup;
 pub mod spectrum;
 pub mod ui;
-pub mod visualizer;
+pub mod visualize;
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {

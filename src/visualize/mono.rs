@@ -3,21 +3,11 @@ use ratatui::style::Color;
 use crate::filter::{ExperimentalFilter, Filter};
 use crate::spectrum::average::AverageSpectrum;
 use crate::spectrum::spectral::Spectral;
+use crate::visualize::visual::COLORS;
+use crate::visualize::visual::DEFAULT_COLOR_INDEX;
+use crate::visualize::visual::Mode;
 
-const DEFAULT_BAR_COUNT: usize = 72;
-const DEFAULT_COLOR_INDEX: usize = 5;
-pub const COLORS: [Color; 8] = [
-    Color::White,
-    Color::Black,
-    Color::Red,
-    Color::Green,
-    Color::Yellow,
-    Color::Blue,
-    Color::Magenta,
-    Color::Gray,
-];
-
-pub struct Visualizer<T: Filter> {
+pub struct MonoVisualizer<T: Filter> {
     pub color_index: usize,
     spectrum: AverageSpectrum,
     out: Vec<u32>,
@@ -25,22 +15,23 @@ pub struct Visualizer<T: Filter> {
     pub mode: Mode,
 }
 
-impl<T: Filter + Default> Default for Visualizer<T> {
+impl<T: Filter + Default> Default for MonoVisualizer<T> {
     fn default() -> Self {
-        Self::new(DEFAULT_BAR_COUNT, DEFAULT_COLOR_INDEX, Default::default())
+        Self::new(DEFAULT_COLOR_INDEX, Default::default(), Default::default())
     }
 }
 
-impl Default for Visualizer<ExperimentalFilter> {
+impl Default for MonoVisualizer<ExperimentalFilter> {
     fn default() -> Self {
-        let filter = ExperimentalFilter::new_default(DEFAULT_BAR_COUNT);
-        Self::new(DEFAULT_BAR_COUNT, DEFAULT_COLOR_INDEX, filter)
+        let filter = ExperimentalFilter::new_default(72); // this will fuck up if the count is off
+        let spectrum = Default::default();
+        Self::new(DEFAULT_COLOR_INDEX, filter, spectrum)
     }
 }
 
-impl<T: Filter> Visualizer<T> {
-    pub fn new(bars: usize, color_index: usize, filter: T) -> Self {
-        let spectrum = AverageSpectrum::new(bars);
+impl<T: Filter> MonoVisualizer<T> {
+    pub fn new(color_index: usize, filter: T, spectrum: AverageSpectrum) -> Self {
+        let bars = spectrum.ranges;
         let out = vec![0; bars];
         Self {
             color_index,
@@ -117,14 +108,4 @@ impl<T: Filter> Visualizer<T> {
     pub fn input_max(&self) -> u32 {
         self.spectrum.max().unwrap_or_default()
     }
-}
-
-#[derive(Debug, Default)]
-pub enum Mode {
-    #[default]
-    Default,
-    ColorPick,
-    ShowStats,
-    ShowKeys,
-    ShowInput,
 }

@@ -10,11 +10,11 @@ use ratatui::{
 };
 
 use crate::{app::App, popup::HORIZ_PERCENT};
-use crate::{filter::Filter, visualizer::Mode};
-use crate::{popup::InputPopup, visualizer::Visualizer};
+use crate::{filter::Filter, visualize::visual::Mode};
+use crate::{popup::InputPopup, visualize::mono::MonoVisualizer};
 use crate::{
     popup::{ColorPickPopup, KeysPopup, StatsPopup},
-    visualizer::COLORS,
+    visualize::visual::COLORS,
 };
 
 impl Widget for &App {
@@ -23,7 +23,7 @@ impl Widget for &App {
     }
 }
 
-impl<T: Filter> Widget for &Visualizer<T> {
+impl<T: Filter> Widget for &MonoVisualizer<T> {
     /// Renders the user interface widgets.
     ///
     // This is where you add new widgets.
@@ -191,7 +191,7 @@ impl Widget for &InputPopup {
 }
 
 fn vertical_barchart<T: Filter>(
-    vis: &Visualizer<T>,
+    vis: &MonoVisualizer<T>,
     color: Color,
     bar_width: u16,
     height: u64,
