@@ -10,3 +10,7 @@ pub trait Spectral {
     fn channels(&self) -> usize;
     fn max(&self) -> Option<u32>;
 }
+
+pub(super) const RATIO: f32 = 0.10;
+pub(super) const OFFSET: usize = 0;
+pub(super) const DEFAULT_SCALE: f32 = 48.0;

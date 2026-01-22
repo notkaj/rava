@@ -1,14 +1,13 @@
 use crate::app::App;
 
-pub mod app;
-pub mod capture;
-pub mod event;
-pub mod fft;
+mod app;
+mod capture;
+mod event;
+mod fft;
 mod filter;
-pub mod popup;
-pub mod spectrum;
-pub mod ui;
-pub mod visualize;
+mod spectrum;
+mod ui;
+mod visualize;
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
