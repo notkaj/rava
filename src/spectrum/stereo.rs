@@ -5,7 +5,7 @@ use tokio::sync::mpsc::{self, Receiver, Sender};
 
 use crate::capture::capturer::{Capturer, capture, default_interleaved_capturer};
 use crate::fft::Fft;
-use crate::spectrum::spectral::Spectral;
+use crate::spectrum::spectral::{DEFAULT_RANGE_COUNT, Spectral};
 
 pub struct StereoSpectrum {
     capturer: Box<dyn Capturer>,
@@ -23,6 +23,12 @@ pub struct StereoSpectrum {
 const RATIO: f32 = 0.10;
 const OFFSET: usize = 0;
 const DEFAULT_SCALE: f32 = 48.0;
+
+impl Default for StereoSpectrum {
+    fn default() -> Self {
+        StereoSpectrum::new(DEFAULT_RANGE_COUNT)
+    }
+}
 
 impl StereoSpectrum {
     pub fn new(ranges: usize) -> Self {

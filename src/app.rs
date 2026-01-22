@@ -1,7 +1,7 @@
 use crate::event::{AppEvent, Event, EventHandler};
 use crate::filter::NormalFilter;
 use crate::visualize::mono::MonoVisualizer;
-use crate::visualize::visual::Mode;
+use crate::visualize::visual::{Mode, Visual};
 use ratatui::{
     DefaultTerminal,
     crossterm::event::{KeyCode, KeyEvent, KeyModifiers},

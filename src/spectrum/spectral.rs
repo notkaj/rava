@@ -1,3 +1,5 @@
+pub(super) const DEFAULT_RANGE_COUNT: usize = 72;
+
 pub trait Spectral {
     // fn init(&mut self);
     fn update(&mut self);

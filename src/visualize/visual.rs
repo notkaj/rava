@@ -2,7 +2,6 @@ use ratatui::style::Color;
 
 pub trait Visual {
     fn update(&mut self);
-    fn output(&self) -> &[u32];
     fn add_bar(&mut self);
     fn remove_bar(&mut self);
     fn increment_scale(&mut self);

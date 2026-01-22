@@ -9,7 +9,7 @@ use ratatui::{
     },
 };
 
-use crate::{app::App, popup::HORIZ_PERCENT};
+use crate::{app::App, popup::HORIZ_PERCENT, visualize::visual::Visual};
 use crate::{filter::Filter, visualize::visual::Mode};
 use crate::{popup::InputPopup, visualize::mono::MonoVisualizer};
 use crate::{
