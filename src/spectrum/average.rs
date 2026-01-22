@@ -11,8 +11,8 @@ pub struct AverageSpectrum {
     pub ranges: usize,
     pub amps: Vec<u32>,
     scale: f32, // should be moved out to Visualizer?
-    tx: Option<Sender<Vec<f32>>>,
-    rx: Option<Receiver<Vec<f32>>>,
+    tx: Sender<Vec<f32>>,
+    rx: Receiver<Vec<f32>>,
     pub sample_len: usize,
 }
 
@@ -25,11 +25,14 @@ impl AverageSpectrum {
         // eprintln!("Initializeing Audio Stream");
         let capturer = default_capturer();
         let amps = vec![0; ranges];
-        let tx = None;
-        let rx = None;
+
+        let (tx, rx_from_spectrum) = mpsc::channel(1);
+        let (tx_to_spectrum, rx) = mpsc::channel(1);
         let sample_len = 2048;
+        let _ = tx.try_send(vec![0.0; sample_len]);
+
         let scale = DEFAULT_SCALE;
-        Self {
+        let res = Self {
             capturer,
             ranges,
             amps,
@@ -37,7 +40,22 @@ impl AverageSpectrum {
             tx,
             rx,
             sample_len,
+        };
+        res.init(rx_from_spectrum, tx_to_spectrum)
+    }
+
+    fn init(self, rx_from_spectrum: Receiver<Vec<f32>>, tx_to_spectrum: Sender<Vec<f32>>) -> Self {
+        self.capturer
+            .init()
+            .expect("Error in Capturer Initialization");
+        let mut sample_len = self.capturer.buffer_size();
+        while sample_len == 0 {
+            sample_len = self.capturer.buffer_size();
+            std::thread::sleep(Duration::from_millis(100));
         }
+        let fft = Fft::new(self.sample_len, tx_to_spectrum, rx_from_spectrum);
+        fft.init();
+        self
     }
 
     fn sample() -> Vec<f32> {
@@ -47,35 +65,8 @@ impl AverageSpectrum {
 }
 
 impl Spectral for AverageSpectrum {
-    fn init(&mut self) {
-        self.capturer
-            .init()
-            .expect("Error in Capturer Initialization");
-        let mut sample_len = self.capturer.buffer_size();
-        while sample_len == 0 {
-            sample_len = self.capturer.buffer_size();
-            std::thread::sleep(Duration::from_millis(100));
-        }
-        let (tx, rx_from_spectrum) = mpsc::channel(1);
-        let (tx_to_spectrum, rx) = mpsc::channel(1);
-        let _ = tx.try_send(vec![0.0; sample_len]);
-        self.tx = Some(tx);
-        self.rx = Some(rx);
-        let fft = Fft::new(self.sample_len, tx_to_spectrum, rx_from_spectrum);
-        fft.init();
-    }
-
     fn update(&mut self) {
-        // self.fft.place_input(sample.as_slice());
-        // let transform = self.fft.transform();
-        let Some(tx) = &self.tx else {
-            panic!("fft sender not initialized")
-        };
-        let Some(rx) = self.rx.as_mut() else {
-            panic!("fft receiver not initialized")
-        };
-
-        let Ok(transform) = rx.try_recv() else {
+        let Ok(transform) = self.rx.try_recv() else {
             // TODO: recover form this
             panic!("ui and fft out of sync");
         };
@@ -84,11 +75,11 @@ impl Spectral for AverageSpectrum {
         let sample = AverageSpectrum::sample();
         if sample.is_empty() {
             // maybe handle if this errors
-            let _ = tx.try_send(vec![0.0; transform_len]);
+            let _ = self.tx.try_send(vec![0.0; transform_len]);
             return;
         }
 
-        if tx.try_send(sample).is_err() {
+        if self.tx.try_send(sample).is_err() {
             panic!("fft reviecer dropped or full");
         }
 

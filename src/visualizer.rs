@@ -51,9 +51,9 @@ impl<T: Filter> Visualizer<T> {
         }
     }
 
-    pub fn init(&mut self) {
-        self.spectrum.init();
-    }
+    // pub fn init(&mut self) {
+    //     self.spectrum.init();
+    // }
 
     pub fn update(&mut self) {
         self.spectrum.update();

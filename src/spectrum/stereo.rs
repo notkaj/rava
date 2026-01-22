@@ -102,9 +102,6 @@ impl StereoSpectrum {
 
 impl Spectral for StereoSpectrum {
     fn update(&mut self) {
-        // TODO: I reall hate that these are options. should move channel init to new().
-        // the real issue is that the fft must be moved out in the init function
-        // could init fft in new() but that seems weird
         let Ok(left_transform) = self.left_rx.try_recv() else {
             // TODO: recover form this
             panic!("ui and fft out of sync");
