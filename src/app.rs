@@ -1,6 +1,7 @@
 use crate::event::{AppEvent, Event, EventHandler};
 use crate::filter::NormalFilter;
-use crate::visualize::mono::MonoVisualizer;
+// use crate::visualize::mono::MonoVisualizer;
+use crate::visualize::stereo::StereoVisualizer;
 use crate::visualize::visual::{Mode, Visual};
 use ratatui::{
     DefaultTerminal,
@@ -15,7 +16,7 @@ pub struct App {
     /// Event handler.
     pub events: EventHandler,
     /// Visualizer Widget
-    pub visualizer: MonoVisualizer<NormalFilter>,
+    pub visualizer: StereoVisualizer<NormalFilter>,
 }
 
 impl Default for App {
@@ -36,7 +37,6 @@ impl App {
 
     /// Run the application's main loop.
     pub async fn run(mut self, mut terminal: DefaultTerminal) -> color_eyre::Result<()> {
-        // self.visualizer.init();
         while self.running {
             terminal.draw(|frame| frame.render_widget(&self, frame.area()))?;
             match self.events.next().await? {

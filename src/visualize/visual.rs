@@ -14,6 +14,7 @@ pub trait Visual {
     fn sample_len(&self) -> usize;
     fn bars(&self) -> usize;
     fn input_max(&self) -> u32;
+    fn color_index(&self) -> usize;
 }
 
 #[derive(Debug, Default)]

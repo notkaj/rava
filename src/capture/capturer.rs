@@ -37,7 +37,7 @@ pub enum Error {
     #[error("Creation failed")]
     CreationFailed,
     #[error("Internal Error")]
-    InternalError,
+    Internal,
     #[error("Invalid Arguement")]
     InvalidArgument,
 }

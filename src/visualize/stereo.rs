@@ -6,23 +6,41 @@ use crate::{
     visualize::visual::{COLORS, DEFAULT_COLOR_INDEX, Mode, Visual},
 };
 
+#[derive(Default)]
+pub enum Presentation {
+    #[default]
+    Horizontal,
+    Vertical,
+}
+
 pub struct StereoVisualizer<T: Filter> {
     pub color_index: usize,
     spectrum: StereoSpectrum,
-    left_out: Vec<u32>,
-    right_out: Vec<u32>,
+    pub left_out: Vec<u32>,
+    pub right_out: Vec<u32>,
     filter: T,
     pub mode: Mode,
+    pub presentation: Presentation,
 }
 
 impl<T: Filter + Default> Default for StereoVisualizer<T> {
     fn default() -> Self {
-        Self::new(DEFAULT_COLOR_INDEX, Default::default(), Default::default())
+        Self::new(
+            DEFAULT_COLOR_INDEX,
+            Default::default(),
+            Default::default(),
+            Default::default(),
+        )
     }
 }
 
 impl<T: Filter> StereoVisualizer<T> {
-    pub fn new(color_index: usize, filter: T, spectrum: StereoSpectrum) -> Self {
+    pub fn new(
+        color_index: usize,
+        filter: T,
+        spectrum: StereoSpectrum,
+        presentation: Presentation,
+    ) -> Self {
         let bars = spectrum.ranges;
         let left_out = vec![0; bars];
         let right_out = vec![0; bars];
@@ -34,6 +52,7 @@ impl<T: Filter> StereoVisualizer<T> {
             right_out,
             filter,
             mode,
+            presentation,
         }
     }
 }
@@ -101,5 +120,9 @@ impl<T: Filter> Visual for StereoVisualizer<T> {
 
     fn input_max(&self) -> u32 {
         self.spectrum.max().unwrap_or_default()
+    }
+
+    fn color_index(&self) -> usize {
+        self.color_index
     }
 }

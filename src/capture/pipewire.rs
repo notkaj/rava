@@ -161,7 +161,7 @@ fn averaged(stream: &Stream, user_data: &mut Arc<RwLock<UserData>>) {
 
     let mut buffer_guard = BUFFER.write().unwrap();
 
-    // TODO:probably don't need this conditional
+    //TODO: probably don't need this conditional
     if curr_buffer_size != buffer_size {
         user_data.write().unwrap().buffer_size = buffer_size;
         buffer_guard.resize(buffer_size, 0.0);
@@ -191,12 +191,14 @@ fn averaged(stream: &Stream, user_data: &mut Arc<RwLock<UserData>>) {
     }
 }
 
-fn interleaved(stream: &Stream, _: &mut Arc<RwLock<UserData>>) {
+fn interleaved(stream: &Stream, user_data: &mut Arc<RwLock<UserData>>) {
     let mut buffer = stream.dequeue_buffer().unwrap();
     let datas = buffer.datas_mut();
     if datas.is_empty() {
         return;
     }
+
+    let curr_buffer_size = user_data.read().unwrap().buffer_size;
 
     let data = &mut datas[0];
     let size = data.chunk().size() as usize;
@@ -204,14 +206,15 @@ fn interleaved(stream: &Stream, _: &mut Arc<RwLock<UserData>>) {
     let type_size = mem::size_of::<f32>();
     let buffer_size = size / type_size;
 
-    if BUFFER.read().unwrap().len() != buffer_size {
+    if curr_buffer_size != buffer_size {
+        user_data.write().unwrap().buffer_size = buffer_size;
         BUFFER.write().unwrap().resize(buffer_size, 0.0);
     }
 
     if let Some(samples) = data.data() {
-        let mut guard = BUFFER.write().unwrap();
-        let interpol = cast_slice(samples);
-        guard.copy_from_slice(interpol);
+        let sample = &samples[0..size];
+        let floats = cast_slice(sample);
+        BUFFER.write().unwrap().copy_from_slice(floats);
     }
 }
 
@@ -219,9 +222,9 @@ impl From<pipewire::Error> for Error {
     fn from(value: pipewire::Error) -> Self {
         match value {
             pipewire::Error::CreationFailed => Error::CreationFailed,
-            pipewire::Error::NoMemory => Error::InternalError,
+            pipewire::Error::NoMemory => Error::Internal,
             pipewire::Error::WrongProxyType => Error::InvalidArgument,
-            pipewire::Error::SpaError(_) => Error::InternalError,
+            pipewire::Error::SpaError(_) => Error::Internal,
         }
     }
 }

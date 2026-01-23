@@ -28,7 +28,6 @@ impl Default for StereoSpectrum {
 
 impl StereoSpectrum {
     pub fn new(ranges: usize) -> Self {
-        // eprintln!("Initializeing Audio Stream");
         let capturer = default_interleaved_capturer();
         let left_amps = vec![0; ranges];
         let right_amps = vec![0; ranges];
