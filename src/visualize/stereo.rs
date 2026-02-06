@@ -3,15 +3,8 @@ use ratatui::style::Color;
 use crate::{
     filter::Filter,
     spectrum::{spectral::Spectral, stereo::StereoSpectrum},
-    visualize::visual::{COLORS, DEFAULT_COLOR_INDEX, Mode, Visual},
+    visualize::visual::{COLORS, DEFAULT_COLOR_INDEX, Direction, Mode, Visual},
 };
-
-#[derive(Default)]
-pub enum Presentation {
-    #[default]
-    Horizontal,
-    Vertical,
-}
 
 pub struct StereoVisualizer<T: Filter> {
     pub color_index: usize,
@@ -20,7 +13,7 @@ pub struct StereoVisualizer<T: Filter> {
     pub right_out: Vec<u32>,
     filter: T,
     pub mode: Mode,
-    pub presentation: Presentation,
+    pub direction: Direction,
 }
 
 impl<T: Filter + Default> Default for StereoVisualizer<T> {
@@ -39,7 +32,7 @@ impl<T: Filter> StereoVisualizer<T> {
         color_index: usize,
         filter: T,
         spectrum: StereoSpectrum,
-        presentation: Presentation,
+        direction: Direction,
     ) -> Self {
         let bars = spectrum.ranges;
         let left_out = vec![0; bars];
@@ -52,7 +45,7 @@ impl<T: Filter> StereoVisualizer<T> {
             right_out,
             filter,
             mode,
-            presentation,
+            direction,
         }
     }
 }

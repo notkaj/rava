@@ -38,3 +38,10 @@ pub const COLORS: [Color; 8] = [
     Color::Magenta,
     Color::Gray,
 ];
+
+#[derive(Default)]
+pub enum Direction {
+    #[default]
+    Horizontal,
+    Vertical,
+}

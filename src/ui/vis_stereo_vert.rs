@@ -2,8 +2,8 @@ use crate::{
     filter::Filter,
     ui::popup::Popup,
     visualize::{
-        stereo::{Presentation, StereoVisualizer},
-        visual::Visual,
+        stereo::StereoVisualizer,
+        visual::{Direction, Visual},
     },
 };
 use ratatui::{
@@ -16,9 +16,9 @@ use tui_barchart_ext::barchart::{Bar, BarChart, BarGroup};
 
 impl<T: Filter> Widget for &StereoVisualizer<T> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        match self.presentation {
-            Presentation::Horizontal => render_vert(self, area, buf),
-            Presentation::Vertical => (),
+        match self.direction {
+            Direction::Horizontal => render_vert(self, area, buf),
+            Direction::Vertical => (),
         }
 
         Popup::render(self, &self.mode, area, buf);
