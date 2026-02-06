@@ -42,6 +42,14 @@ pub const COLORS: [Color; 8] = [
 #[derive(Default)]
 pub enum Direction {
     #[default]
-    Horizontal,
     Vertical,
+    Horizontal,
+}
+
+#[derive(Default)]
+pub enum Orientation {
+    #[default]
+    Normal,
+    Centered,
+    Inverted,
 }

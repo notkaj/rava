@@ -3,9 +3,9 @@ use ratatui::style::Color;
 use crate::filter::{ExperimentalFilter, Filter};
 use crate::spectrum::average::AverageSpectrum;
 use crate::spectrum::spectral::Spectral;
-use crate::visualize::visual::DEFAULT_COLOR_INDEX;
 use crate::visualize::visual::Mode;
 use crate::visualize::visual::{COLORS, Visual};
+use crate::visualize::visual::{DEFAULT_COLOR_INDEX, Direction};
 
 pub struct MonoVisualizer<T: Filter> {
     pub color_index: usize,
@@ -13,24 +13,40 @@ pub struct MonoVisualizer<T: Filter> {
     out: Vec<u32>,
     filter: T,
     pub mode: Mode,
+    pub direction: Direction,
 }
 
 impl<T: Filter + Default> Default for MonoVisualizer<T> {
     fn default() -> Self {
-        Self::new(DEFAULT_COLOR_INDEX, Default::default(), Default::default())
+        Self::new(
+            DEFAULT_COLOR_INDEX,
+            Default::default(),
+            Default::default(),
+            Default::default(),
+        )
     }
 }
 
 impl Default for MonoVisualizer<ExperimentalFilter> {
     fn default() -> Self {
-        let filter = ExperimentalFilter::new_default(72); // this will fuck up if the count is off
-        let spectrum = Default::default();
-        Self::new(DEFAULT_COLOR_INDEX, filter, spectrum)
+        // this will fuck up if the count is different
+        let filter = ExperimentalFilter::new_default(72);
+        Self::new(
+            DEFAULT_COLOR_INDEX,
+            filter,
+            Default::default(),
+            Default::default(),
+        )
     }
 }
 
 impl<T: Filter> MonoVisualizer<T> {
-    pub fn new(color_index: usize, filter: T, spectrum: AverageSpectrum) -> Self {
+    pub fn new(
+        color_index: usize,
+        filter: T,
+        spectrum: AverageSpectrum,
+        direction: Direction,
+    ) -> Self {
         let bars = spectrum.ranges;
         let out = vec![0; bars];
         let mode = Default::default();
@@ -40,6 +56,7 @@ impl<T: Filter> MonoVisualizer<T> {
             out,
             filter,
             mode,
+            direction,
         }
     }
 
