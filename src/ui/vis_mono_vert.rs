@@ -7,8 +7,9 @@ use ratatui::{
     buffer::Buffer,
     layout::Rect,
     style::{Color, Style},
-    widgets::{Bar, BarChart, BarGroup, Widget},
+    widgets::Widget,
 };
+use tui_barchart_ext::barchart::{Bar, BarChart, BarGroup};
 
 impl<T: Filter> Widget for &MonoVisualizer<T> {
     fn render(self, area: Rect, buf: &mut Buffer) {

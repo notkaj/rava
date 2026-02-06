@@ -10,8 +10,9 @@ use ratatui::{
     buffer::Buffer,
     layout::{/*Constraint, Flex, Layout,*/ Constraint, Layout, Rect},
     style::{Color, Style},
-    widgets::{Bar, BarChart, BarGroup, Widget},
+    widgets::Widget,
 };
+use tui_barchart_ext::barchart::{Bar, BarChart, BarGroup};
 
 impl<T: Filter> Widget for &StereoVisualizer<T> {
     fn render(self, area: Rect, buf: &mut Buffer) {
