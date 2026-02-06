@@ -1,7 +1,7 @@
 use crate::event::{AppEvent, Event, EventHandler};
 use crate::filter::NormalFilter;
-// use crate::visualize::mono::MonoVisualizer;
-use crate::visualize::stereo::StereoVisualizer;
+use crate::visualize::mono::MonoVisualizer;
+// use crate::visualize::stereo::StereoVisualizer;
 use crate::visualize::visual::{Mode, Visual};
 use ratatui::{
     DefaultTerminal,
@@ -16,7 +16,7 @@ pub struct App {
     /// Event handler.
     pub events: EventHandler,
     /// Visualizer Widget
-    pub visualizer: StereoVisualizer<NormalFilter>,
+    pub visualizer: MonoVisualizer<NormalFilter>,
 }
 
 impl Default for App {
