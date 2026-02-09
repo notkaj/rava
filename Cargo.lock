@@ -2052,7 +2052,7 @@ dependencies = [
 [[package]]
 name = "tui-barchart-ext"
 version = "0.1.0"
-source = "git+https://github.com/notkaj/tui-barchart-ext.git#281aeee8f011a5cf7f30cf2e2e7d497b6912e58f"
+source = "git+https://github.com/notkaj/tui-barchart-ext.git#dc01da5b81fbdfc88a97337168e61f7eea122c5e"
 dependencies = [
  "itertools 0.14.0",
  "ratatui-core",
