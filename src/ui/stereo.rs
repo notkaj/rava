@@ -86,16 +86,15 @@ fn render_vert<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffe
 fn render_vert_centered<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffer) {
     let bars = vis.bars() as u16;
     let width = area.width;
-    let height = area.height as u64;
+    let height = area.height as u64 / 2;
 
-    let bar_width = width / (bars * 2) - 1;
-    let rem = width - ((bar_width + 1) * bars * 2);
+    let bar_width = width / bars - 1;
 
-    let [_, main] =
-        Layout::horizontal([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
+    // let [_, main] =
+    //     Layout::horizontal([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
 
     let [upper, lower] =
-        Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(main);
+        Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(area);
 
     let (left_chart, right_chart) = vertical_barcharts(vis, bar_width, height);
     let right_chart_inverted = right_chart.inverted();
@@ -160,7 +159,7 @@ fn bars_channels<T: Filter>(vis: &StereoVisualizer<T>) -> (Vec<Bar<'static>>, Ve
     let right_bars: Vec<Bar> = vis
         .right_out
         .iter()
-        .rev()
+        // .rev()
         .map(|amp| bar(*amp, vis.color()))
         .collect();
     (left_bars, right_bars)

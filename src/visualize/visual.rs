@@ -48,8 +48,8 @@ pub enum Direction {
 
 #[derive(Default)]
 pub enum Orientation {
-    #[default]
     Normal,
+    #[default]
     Centered,
     Inverted,
 }
