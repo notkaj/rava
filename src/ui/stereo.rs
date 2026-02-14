@@ -12,15 +12,15 @@ use ratatui::{
     style::{Color, Style},
     widgets::Widget,
 };
-use tui_barchart_ext::barchart::{Bar, BarChart, BarGroup};
+use tui_barchart_ext::barchart::{Bar, BarChart};
 
 impl<T: Filter> Widget for &StereoVisualizer<T> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let dir = self.direction;
-        let ori = self.orientation;
+        let dir = &self.direction;
+        let ori = &self.orientation;
         match (dir, ori) {
             (Direction::Vertical, Orientation::Normal) => render_vert(self, area, buf),
-            (Direction::Horizontal, Orienation::Normal) => render_horiz(self, area, buf),
+            (Direction::Horizontal, Orientation::Normal) => render_horiz(self, area, buf),
             (Direction::Vertical, Orientation::Centered) => render_vert_centered(self, area, buf),
             _ => (),
         }
@@ -109,9 +109,7 @@ fn vertical_barchart_stereo<T: Filter>(
     bar_width: u16,
     height: u64,
 ) -> BarChart<'static> {
-    let color = vis.color();
-    let chan_len = vis.left_out.len();
-    let bars = bars_stereo(&vis);
+    let bars = bars_stereo(vis);
 
     BarChart::vertical(bars)
         .bar_width(bar_width)
@@ -143,11 +141,11 @@ fn vertical_barcharts<T: Filter>(
     bar_width: u16,
     height: u64,
 ) -> (BarChart<'static>, BarChart<'static>) {
-    let (left_bars, right_bars) = bars_channels(&vis);
-    let left = BarChart::vertical(&left_bars)
+    let (left_bars, right_bars) = bars_channels(vis);
+    let left = BarChart::vertical(left_bars)
         .bar_width(bar_width)
         .max(height * 8);
-    let right = BarChart::vertical(&right_bars)
+    let right = BarChart::vertical(right_bars)
         .bar_width(bar_width)
         .max(height * 8);
     (left, right)
