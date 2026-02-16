@@ -46,10 +46,18 @@ pub enum Direction {
     Horizontal,
 }
 
+impl From<Direction> for ratatui::layout::Direction {
+    fn from(value: Direction) -> Self {
+        match value {
+            Direction::Vertical => ratatui::layout::Direction::Vertical,
+            Direction::Horizontal => ratatui::layout::Direction::Horizontal,
+        }
+    }
+}
 #[derive(Default)]
 pub enum Orientation {
-    Normal,
     #[default]
+    Normal,
     Centered,
     Inverted,
 }
