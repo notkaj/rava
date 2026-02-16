@@ -19,13 +19,12 @@ impl<T: Filter> Widget for &StereoVisualizer<T> {
         let dir = &self.direction;
         let ori = &self.orientation;
         match (dir, ori) {
-            (Direction::Vertical, Orientation::Normal) => render_vert(self, area, buf),
-            (Direction::Horizontal, Orientation::Normal) => render_horiz(self, area, buf),
             (Direction::Vertical, Orientation::Centered) => render_vert_centered(self, area, buf),
             (Direction::Horizontal, Orientation::Centered) => {
                 render_horiz_centered(self, area, buf)
             }
-            _ => (),
+            (Direction::Vertical, _) => render_vert(self, area, buf),
+            (Direction::Horizontal, _) => render_horiz(self, area, buf),
         }
 
         Popup::render(self, &self.mode, area, buf);
@@ -44,7 +43,12 @@ fn render_horiz<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buff
         Layout::vertical([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
 
     // let chart = horizontal_barchart(vis, bar_width, width);
-    let chart = barchart_stereo(vis, bar_width, width).direction(Direction::Horizontal.into());
+    let chart = match vis.orientation {
+        Orientation::Inverted => barchart_stereo(vis, bar_width, width).inverted(),
+        _ => barchart_stereo(vis, bar_width, width),
+    }
+    .direction(Direction::Horizontal.into());
+
     chart.render(main, buf)
 }
 
@@ -106,7 +110,11 @@ fn render_vert<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffe
         Layout::horizontal([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
 
     // let chart = vertical_barchart_stereo(vis, bar_width, height);
-    let chart = barchart_stereo(vis, bar_width, height);
+    // let chart = barchart_stereo(vis, bar_width, height);
+    let chart = match vis.orientation {
+        Orientation::Inverted => barchart_stereo(vis, bar_width, height).inverted(),
+        _ => barchart_stereo(vis, bar_width, height),
+    };
     chart.render(main, buf)
 
     // let (left_chart, right_chart) = vertical_barcharts(vis, bar_width, height);
