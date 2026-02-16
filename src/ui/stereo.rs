@@ -22,6 +22,9 @@ impl<T: Filter> Widget for &StereoVisualizer<T> {
             (Direction::Vertical, Orientation::Normal) => render_vert(self, area, buf),
             (Direction::Horizontal, Orientation::Normal) => render_horiz(self, area, buf),
             (Direction::Vertical, Orientation::Centered) => render_vert_centered(self, area, buf),
+            (Direction::Horizontal, Orientation::Centered) => {
+                render_horiz_centered(self, area, buf)
+            }
             _ => (),
         }
 
@@ -41,8 +44,32 @@ fn render_horiz<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buff
         Layout::vertical([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
 
     // let chart = horizontal_barchart(vis, bar_width, width);
-    let chart = barchart_stereo(vis, Direction::Horizontal, bar_width, width);
+    let chart = barchart_stereo(vis, bar_width, width).direction(Direction::Horizontal.into());
     chart.render(main, buf)
+}
+
+fn render_horiz_centered<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffer) {
+    let bars = vis.bars() as u16;
+    let width = area.width as u64;
+    let height = area.height;
+
+    let bar_width = height / bars - 1;
+    let rem = height.saturating_sub((bar_width + 1) * bars);
+
+    let [_, main] =
+        Layout::vertical([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
+
+    let (left_chart, right_chart) = barcharts(vis, bar_width, width);
+    let left_chart = left_chart
+        .direction(Direction::Horizontal.into())
+        .inverted();
+    let right_chart = right_chart.direction(Direction::Horizontal.into());
+
+    let [left, right] =
+        Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(main);
+
+    left_chart.render(left, buf);
+    right_chart.render(right, buf);
 }
 
 #[deprecated]
@@ -60,15 +87,11 @@ fn horizontal_barchart<T: Filter>(
 
 fn barchart_stereo<T: Filter>(
     vis: &StereoVisualizer<T>,
-    dir: Direction,
     bar_width: u16,
     max: u64,
 ) -> BarChart<'static> {
     let bars = bars_stereo(vis);
-    BarChart::new(bars)
-        .direction(dir.into())
-        .bar_width(bar_width)
-        .max(max)
+    BarChart::new(bars).bar_width(bar_width).max(max)
 }
 
 fn render_vert<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffer) {
@@ -83,7 +106,7 @@ fn render_vert<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffe
         Layout::horizontal([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
 
     // let chart = vertical_barchart_stereo(vis, bar_width, height);
-    let chart = barchart_stereo(vis, Direction::Vertical, bar_width, height);
+    let chart = barchart_stereo(vis, bar_width, height);
     chart.render(main, buf)
 
     // let (left_chart, right_chart) = vertical_barcharts(vis, bar_width, height);
@@ -113,7 +136,8 @@ fn render_vert_centered<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &
     let [upper, lower] =
         Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(area);
 
-    let (left_chart, right_chart) = vertical_barcharts(vis, bar_width, height);
+    // let (left_chart, right_chart) = vertical_barcharts(vis, bar_width, height);
+    let (left_chart, right_chart) = barcharts(vis, bar_width, height);
     let right_chart_inverted = right_chart.inverted();
 
     left_chart.render(upper, buf);
@@ -154,6 +178,8 @@ fn bar(amp: u32, color: Color) -> Bar<'static> {
         .style(Style::new().fg(color))
 }
 
+#[deprecated]
+#[allow(dead_code)]
 fn vertical_barcharts<T: Filter>(
     vis: &StereoVisualizer<T>,
     bar_width: u16,
@@ -166,6 +192,34 @@ fn vertical_barcharts<T: Filter>(
     let right = BarChart::vertical(right_bars)
         .bar_width(bar_width)
         .max(height * 8);
+    (left, right)
+}
+
+#[deprecated]
+#[allow(dead_code)]
+fn horizontal_barcharts<T: Filter>(
+    vis: &StereoVisualizer<T>,
+    bar_width: u16,
+    height: u64,
+) -> (BarChart<'static>, BarChart<'static>) {
+    let (left_bars, right_bars) = bars_channels(vis);
+    let left = BarChart::horizontal(left_bars)
+        .bar_width(bar_width)
+        .max(height * 8);
+    let right = BarChart::horizontal(right_bars)
+        .bar_width(bar_width)
+        .max(height * 8);
+    (left, right)
+}
+
+fn barcharts<T: Filter>(
+    vis: &StereoVisualizer<T>,
+    bar_width: u16,
+    max: u64,
+) -> (BarChart<'static>, BarChart<'static>) {
+    let (left_bars, right_bars) = bars_channels(vis);
+    let left = BarChart::new(left_bars).bar_width(bar_width).max(max * 8);
+    let right = BarChart::new(right_bars).bar_width(bar_width).max(max * 8);
     (left, right)
 }
 
