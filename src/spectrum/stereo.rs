@@ -182,7 +182,7 @@ impl Spectral for StereoSpectrum {
         self.capturer.channels()
     }
 
-    fn max(&self) -> Option<u32> {
+    fn max_amp(&self) -> Option<u32> {
         let left = self.left_amps.iter().max().copied();
         let right = self.right_amps.iter().max().copied();
         cmp::max(left, right)

@@ -122,7 +122,7 @@ impl<T: Filter> Visual for MonoVisualizer<T> {
     }
 
     fn input_max(&self) -> u32 {
-        self.spectrum.max().unwrap_or_default()
+        self.spectrum.max_amp().unwrap_or_default()
     }
 
     fn color_index(&self) -> usize {

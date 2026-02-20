@@ -6,7 +6,7 @@ pub trait Spectral {
     fn adjust_scale(&mut self, value: f32);
     fn sample_rate(&self) -> usize;
     fn channels(&self) -> usize;
-    fn max(&self) -> Option<u32>;
+    fn max_amp(&self) -> Option<u32>;
 }
 
 pub(super) const DEFAULT_RANGE_COUNT: usize = 36;

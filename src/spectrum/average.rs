@@ -128,7 +128,7 @@ impl Spectral for AverageSpectrum {
         self.capturer.channels()
     }
 
-    fn max(&self) -> Option<u32> {
+    fn max_amp(&self) -> Option<u32> {
         self.amps.iter().max().copied()
     }
 }
