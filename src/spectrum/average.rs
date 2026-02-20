@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use tokio::sync::mpsc::{self, Receiver, Sender};
 
+use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_capturer};
 use crate::fft::Fft;
 use crate::spectrum::spectral::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, Spectral};
@@ -30,7 +31,7 @@ impl AverageSpectrum {
 
         let (tx, rx_from_spectrum) = mpsc::channel(1);
         let (tx_to_spectrum, rx) = mpsc::channel(1);
-        let sample_len = 2048;
+        let sample_len = DEFAULT_QUANT;
         let _ = tx.try_send(vec![0.0; sample_len]);
 
         let scale = DEFAULT_SCALE;

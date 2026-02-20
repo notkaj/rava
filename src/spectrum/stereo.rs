@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use tokio::sync::mpsc::{self, Receiver, Sender};
 
+use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_interleaved_capturer};
 use crate::fft::Fft;
 use crate::spectrum::spectral::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, Spectral};
@@ -36,7 +37,7 @@ impl StereoSpectrum {
         let (left_tx_to_spectrum, left_rx) = mpsc::channel(1);
         let (right_tx, right_rx_from_spectrum) = mpsc::channel(1);
         let (right_tx_to_spectrum, right_rx) = mpsc::channel(1);
-        let sample_len = 2048;
+        let sample_len = DEFAULT_QUANT;
         let _ = left_tx.try_send(vec![0.0; sample_len]);
         let _ = right_tx.try_send(vec![0.0; sample_len]);
 

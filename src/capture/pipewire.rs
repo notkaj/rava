@@ -1,3 +1,5 @@
+use crate::capture::DEFAULT_QUANT;
+use crate::capture::DEFAULT_RATE;
 use crate::capture::capturer::BUFFER;
 use crate::capture::capturer::Capturer;
 use crate::capture::capturer::ChannelFormat;
@@ -63,13 +65,16 @@ fn pw_thread(data: Arc<RwLock<UserData>>, channel_format: ChannelFormat) -> Resu
     let mainloop = pw::main_loop::MainLoopRc::new(None)?;
     let context = pw::context::ContextRc::new(&mainloop, None)?;
     let core = context.connect_rc(None)?;
+    let latency = format!("{}/{}", DEFAULT_QUANT, DEFAULT_RATE);
 
     let props = properties! {
         *pw::keys::MEDIA_TYPE => "Audio",
         *pw::keys::MEDIA_CATEGORY => "Capture",
         *pw::keys::MEDIA_ROLE => "Music",
         *pw::keys::STREAM_CAPTURE_SINK => "true",
-        *pw::keys::NODE_LATENCY => "2048/48000",
+        *pw::keys::NODE_LATENCY => latency,
+        // *pw::keys::NODE_ALWAYS_PROCESS => "true",
+
     };
 
     let stream = pw::stream::StreamBox::new(&core, "rava-audio-capture", props)?;
