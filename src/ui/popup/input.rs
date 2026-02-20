@@ -3,10 +3,11 @@ use ratatui::{
     layout::{Constraint, Flex, Layout, Rect},
     style::{Color, Style},
     text::{Line, Text},
-    widgets::{Bar, BarChart, Block, BorderType, Clear, Widget},
+    widgets::{Block, BorderType, Clear, Widget},
 };
 
 use crate::ui::popup::HORIZ_PERCENT;
+use tui_barchart_ext::barchart::{Bar, BarChart};
 
 pub struct InputPopup {
     pub color: Color,
