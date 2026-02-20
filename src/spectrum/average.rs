@@ -52,6 +52,7 @@ impl AverageSpectrum {
             .init()
             .expect("Error in Capturer Initialization");
         let mut sample_len = self.capturer.buffer_size();
+        // TODO: this is stupid
         while sample_len == 0 {
             sample_len = self.capturer.buffer_size();
             std::thread::sleep(Duration::from_millis(100));
