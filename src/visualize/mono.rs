@@ -1,36 +1,24 @@
 use ratatui::style::Color;
 
-use crate::filter::{ExperimentalFilter, Filter};
+use crate::filter::{Filter, NormalFilter};
 use crate::spectrum::average::AverageSpectrum;
 use crate::spectrum::spectral::Spectral;
 use crate::visualize::visual::Mode;
 use crate::visualize::visual::{COLORS, Visual};
 use crate::visualize::visual::{DEFAULT_COLOR_INDEX, Direction};
 
-pub struct MonoVisualizer<T: Filter> {
+pub struct MonoVisualizer {
     pub color_index: usize,
     spectrum: AverageSpectrum,
     out: Vec<u32>,
-    filter: T,
+    filter: Box<dyn Filter>,
     pub mode: Mode,
     pub direction: Direction,
 }
 
-impl<T: Filter + Default> Default for MonoVisualizer<T> {
+impl Default for MonoVisualizer {
     fn default() -> Self {
-        Self::new(
-            DEFAULT_COLOR_INDEX,
-            Default::default(),
-            Default::default(),
-            Default::default(),
-        )
-    }
-}
-
-impl Default for MonoVisualizer<ExperimentalFilter> {
-    fn default() -> Self {
-        // this will fuck up if the count is different
-        let filter = ExperimentalFilter::new_default(72);
+        let filter = Box::new(NormalFilter::default());
         Self::new(
             DEFAULT_COLOR_INDEX,
             filter,
@@ -40,10 +28,10 @@ impl Default for MonoVisualizer<ExperimentalFilter> {
     }
 }
 
-impl<T: Filter> MonoVisualizer<T> {
+impl MonoVisualizer {
     pub fn new(
         color_index: usize,
-        filter: T,
+        filter: Box<dyn Filter>,
         spectrum: AverageSpectrum,
         direction: Direction,
     ) -> Self {
@@ -65,7 +53,7 @@ impl<T: Filter> MonoVisualizer<T> {
     }
 }
 
-impl<T: Filter> Visual for MonoVisualizer<T> {
+impl Visual for MonoVisualizer {
     fn update(&mut self) {
         self.spectrum.update();
         self.filter.apply(&self.spectrum.amps, &mut self.out);

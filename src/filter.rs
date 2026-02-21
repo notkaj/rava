@@ -52,6 +52,7 @@ pub struct ExperimentalFilter {
     ticks: RefCell<Vec<u8>>,
 }
 
+#[allow(dead_code)]
 impl ExperimentalFilter {
     pub fn new(len: usize, rate_of_decay: f32, peak_dur_ticks: u8) -> Self {
         // TODO: this vec is never adjusted, so if the number of bars is
