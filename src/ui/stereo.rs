@@ -1,5 +1,4 @@
 use crate::{
-    filter::Filter,
     ui::popup::Popup,
     visualize::{
         stereo::StereoVisualizer,
@@ -14,7 +13,7 @@ use ratatui::{
 };
 use tui_barchart_ext::barchart::{Bar, BarChart};
 
-impl<T: Filter> Widget for &StereoVisualizer<T> {
+impl Widget for &StereoVisualizer {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let dir = &self.direction;
         let ori = &self.orientation;
@@ -31,7 +30,7 @@ impl<T: Filter> Widget for &StereoVisualizer<T> {
     }
 }
 
-fn render_horiz<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffer) {
+fn render_horiz(vis: &StereoVisualizer, area: Rect, buf: &mut Buffer) {
     let bars = vis.bars() as u16;
     let width = area.width as u64;
     let height = area.height;
@@ -52,7 +51,7 @@ fn render_horiz<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buff
     chart.render(main, buf)
 }
 
-fn render_horiz_centered<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffer) {
+fn render_horiz_centered(vis: &StereoVisualizer, area: Rect, buf: &mut Buffer) {
     let bars = vis.bars() as u16;
     let width = area.width as u64;
     let height = area.height;
@@ -78,27 +77,19 @@ fn render_horiz_centered<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: 
 
 #[deprecated]
 #[allow(dead_code)]
-fn horizontal_barchart<T: Filter>(
-    vis: &StereoVisualizer<T>,
-    bar_width: u16,
-    width: u64,
-) -> BarChart<'static> {
+fn horizontal_barchart(vis: &StereoVisualizer, bar_width: u16, width: u64) -> BarChart<'static> {
     let bars = bars_stereo(vis);
     BarChart::horizontal(bars)
         .bar_width(bar_width)
         .max(width * 8)
 }
 
-fn barchart_stereo<T: Filter>(
-    vis: &StereoVisualizer<T>,
-    bar_width: u16,
-    max: u64,
-) -> BarChart<'static> {
+fn barchart_stereo(vis: &StereoVisualizer, bar_width: u16, max: u64) -> BarChart<'static> {
     let bars = bars_stereo(vis);
     BarChart::new(bars).bar_width(bar_width).max(max)
 }
 
-fn render_vert<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffer) {
+fn render_vert(vis: &StereoVisualizer, area: Rect, buf: &mut Buffer) {
     let bars = vis.bars() as u16;
     let width = area.width;
     let height = area.height as u64;
@@ -131,7 +122,7 @@ fn render_vert<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffe
     // right_chart.render(right_area, buf);
 }
 
-fn render_vert_centered<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &mut Buffer) {
+fn render_vert_centered(vis: &StereoVisualizer, area: Rect, buf: &mut Buffer) {
     let bars = vis.bars() as u16;
     let width = area.width;
     let height = area.height as u64 / 2;
@@ -154,8 +145,8 @@ fn render_vert_centered<T: Filter>(vis: &StereoVisualizer<T>, area: Rect, buf: &
 
 #[deprecated]
 #[allow(dead_code)]
-fn vertical_barchart_stereo<T: Filter>(
-    vis: &StereoVisualizer<T>,
+fn vertical_barchart_stereo(
+    vis: &StereoVisualizer,
     bar_width: u16,
     height: u64,
 ) -> BarChart<'static> {
@@ -166,7 +157,7 @@ fn vertical_barchart_stereo<T: Filter>(
         .max(height * 8)
 }
 
-fn bars_stereo<T: Filter>(vis: &StereoVisualizer<T>) -> Vec<Bar<'static>> {
+fn bars_stereo(vis: &StereoVisualizer) -> Vec<Bar<'static>> {
     let color = vis.color();
     let chan_len = vis.left_out.len();
     let mut bars = Vec::with_capacity(chan_len * 2);
@@ -188,8 +179,8 @@ fn bar(amp: u32, color: Color) -> Bar<'static> {
 
 #[deprecated]
 #[allow(dead_code)]
-fn vertical_barcharts<T: Filter>(
-    vis: &StereoVisualizer<T>,
+fn vertical_barcharts(
+    vis: &StereoVisualizer,
     bar_width: u16,
     height: u64,
 ) -> (BarChart<'static>, BarChart<'static>) {
@@ -205,8 +196,8 @@ fn vertical_barcharts<T: Filter>(
 
 #[deprecated]
 #[allow(dead_code)]
-fn horizontal_barcharts<T: Filter>(
-    vis: &StereoVisualizer<T>,
+fn horizontal_barcharts(
+    vis: &StereoVisualizer,
     bar_width: u16,
     height: u64,
 ) -> (BarChart<'static>, BarChart<'static>) {
@@ -220,8 +211,8 @@ fn horizontal_barcharts<T: Filter>(
     (left, right)
 }
 
-fn barcharts<T: Filter>(
-    vis: &StereoVisualizer<T>,
+fn barcharts(
+    vis: &StereoVisualizer,
     bar_width: u16,
     max: u64,
 ) -> (BarChart<'static>, BarChart<'static>) {
@@ -231,7 +222,7 @@ fn barcharts<T: Filter>(
     (left, right)
 }
 
-fn bars_channels<T: Filter>(vis: &StereoVisualizer<T>) -> (Vec<Bar<'static>>, Vec<Bar<'static>>) {
+fn bars_channels(vis: &StereoVisualizer) -> (Vec<Bar<'static>>, Vec<Bar<'static>>) {
     let left_bars: Vec<Bar> = vis
         .left_out
         .iter()

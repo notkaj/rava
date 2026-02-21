@@ -1,27 +1,28 @@
 use ratatui::style::Color;
 
 use crate::{
-    filter::Filter,
+    filter::{Filter, NormalFilter},
     spectrum::{spectral::Spectral, stereo::StereoSpectrum},
     visualize::visual::{COLORS, DEFAULT_COLOR_INDEX, Direction, Mode, Orientation, Visual},
 };
 
-pub struct StereoVisualizer<T: Filter> {
+pub struct StereoVisualizer {
     pub color_index: usize,
     spectrum: StereoSpectrum,
     pub left_out: Vec<u32>,
     pub right_out: Vec<u32>,
-    filter: T,
+    filter: Box<dyn Filter>,
     pub mode: Mode,
     pub direction: Direction,
     pub orientation: Orientation,
 }
 
-impl<T: Filter + Default> Default for StereoVisualizer<T> {
+impl Default for StereoVisualizer {
     fn default() -> Self {
+        let filter = Box::new(NormalFilter::default());
         Self::new(
             DEFAULT_COLOR_INDEX,
-            Default::default(),
+            filter,
             Default::default(),
             Default::default(),
             Default::default(),
@@ -29,10 +30,10 @@ impl<T: Filter + Default> Default for StereoVisualizer<T> {
     }
 }
 
-impl<T: Filter> StereoVisualizer<T> {
+impl StereoVisualizer {
     pub fn new(
         color_index: usize,
-        filter: T,
+        filter: Box<dyn Filter>,
         spectrum: StereoSpectrum,
         direction: Direction,
         orientation: Orientation,
@@ -54,7 +55,7 @@ impl<T: Filter> StereoVisualizer<T> {
     }
 }
 
-impl<T: Filter> Visual for StereoVisualizer<T> {
+impl Visual for StereoVisualizer {
     fn update(&mut self) {
         self.spectrum.update();
         self.filter
