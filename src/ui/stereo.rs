@@ -9,12 +9,12 @@ use ratatui::{
     buffer::Buffer,
     layout::{/*Constraint, Flex, Layout,*/ Constraint, Layout, Rect},
     style::{Color, Style},
-    widgets::Widget,
+    widgets::{Widget, WidgetRef},
 };
 use tui_barchart_ext::barchart::{Bar, BarChart};
 
-impl Widget for &StereoVisualizer {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+impl WidgetRef for StereoVisualizer {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
         let dir = &self.direction;
         let ori = &self.orientation;
         match (dir, ori) {

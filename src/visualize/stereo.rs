@@ -123,4 +123,12 @@ impl Visual for StereoVisualizer {
     fn color_index(&self) -> usize {
         self.color_index
     }
+
+    fn get_mode(&self) -> Mode {
+        self.mode
+    }
+
+    fn set_mode(&mut self, mode: Mode) {
+        self.mode = mode;
+    }
 }

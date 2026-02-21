@@ -1,7 +1,6 @@
 use crate::event::{AppEvent, Event, EventHandler};
-// use crate::visualize::mono::MonoVisualizer;
-use crate::visualize::stereo::StereoVisualizer;
 use crate::visualize::visual::{Mode, Visual};
+use ratatui::widgets::WidgetRef;
 use ratatui::{
     DefaultTerminal,
     crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
@@ -9,16 +8,40 @@ use ratatui::{
 
 /// Application.
 // #[derive(Debug)]
-pub struct App {
+pub struct App<T: Visual + WidgetRef> {
     /// Is the application running?
     pub running: bool,
     /// Event handler.
     pub events: EventHandler,
     /// Visualizer Widget
-    pub visualizer: StereoVisualizer,
+    pub visualizer: T,
 }
 
-impl Default for App {
+// pub trait Visualizer: Visual + WidgetRef {
+//     fn get_mode(&self) -> Mode;
+//     fn set_mode(&mut self, mode: Mode);
+// }
+//
+// impl Visualizer for MonoVisualizer {
+//     fn get_mode(&self) -> Mode {
+//         self.mode
+//     }
+//
+//     fn set_mode(&mut self, mode: Mode) {
+//         self.mode = mode;
+//     }
+// }
+//
+// impl Visualizer for StereoVisualizer {
+//     fn get_mode(&self) -> Mode {
+//         self.mode
+//     }
+//
+//     fn set_mode(&mut self, mode: Mode) {
+//         self.mode = mode;
+//     }
+// }
+impl<T: Visual + WidgetRef + Default> Default for App<T> {
     fn default() -> Self {
         Self {
             running: true,
@@ -28,7 +51,7 @@ impl Default for App {
     }
 }
 
-impl App {
+impl<T: Visual + WidgetRef + Default> App<T> {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
         Self::default()
@@ -56,16 +79,20 @@ impl App {
                     AppEvent::IncrementScale => self.visualizer.increment_scale(),
                     AppEvent::DecrementScale => self.visualizer.decrement_scale(),
                     AppEvent::ShowStats => {
-                        self.visualizer.mode = Mode::ShowStats;
+                        // self.visualizer.mode = Mode::ShowStats;
+                        self.visualizer.set_mode(Mode::ShowStats);
                     }
                     AppEvent::ShowKeys => {
-                        self.visualizer.mode = Mode::ShowKeys;
+                        // self.visualizer.mode = Mode::ShowKeys;
+                        self.visualizer.set_mode(Mode::ShowKeys);
                     }
                     AppEvent::ShowColors => {
-                        self.visualizer.mode = Mode::ColorPick;
+                        // self.visualizer.mode = Mode::ColorPick;
+                        self.visualizer.set_mode(Mode::ColorPick);
                     }
                     AppEvent::ClosePopup => {
-                        self.visualizer.mode = Mode::Default;
+                        // self.visualizer.mode = Mode::Default;
+                        self.visualizer.set_mode(Mode::Default);
                     }
                     AppEvent::NextColor => {
                         self.visualizer.next_color();
@@ -74,7 +101,8 @@ impl App {
                         self.visualizer.prev_color();
                     }
                     AppEvent::ShowInput => {
-                        self.visualizer.mode = Mode::ShowInput;
+                        // self.visualizer.mode = Mode::ShowInput;
+                        self.visualizer.set_mode(Mode::ShowInput);
                     }
                 },
             }
@@ -84,7 +112,7 @@ impl App {
 
     /// Handles the key events and updates the state of [`App`].
     pub fn handle_key_events(&mut self, key_event: KeyEvent) -> color_eyre::Result<()> {
-        let mode = &self.visualizer.mode;
+        let mode = &self.visualizer.get_mode();
         match (mode, key_event.code) {
             (Mode::Default, KeyCode::Char('q')) => self.events.send(AppEvent::Quit),
             (_, KeyCode::Char('c' | 'C')) if key_event.modifiers == KeyModifiers::CONTROL => {
@@ -102,7 +130,6 @@ impl App {
             (Mode::ColorPick, KeyCode::Char('j')) => self.events.send(AppEvent::NextColor),
             (Mode::ColorPick, KeyCode::Char('k')) => self.events.send(AppEvent::PrevColor),
             (Mode::ColorPick, KeyCode::Enter) => self.events.send(AppEvent::ClosePopup),
-
             // Other handlers you could add here.
             _ => {}
         }
@@ -121,4 +148,18 @@ impl App {
     pub fn quit(&mut self) {
         self.running = false;
     }
+
+    // pub fn set_vis(&mut self, vis: Box<dyn Visualizer>) {
+    //     self.visualizer = vis
+    // }
+
+    // pub fn toggle_channels(&mut self) {
+    // let chans = self.visualizer.channels();
+    // self.visualizer = match chans {
+    //     1 => Box::new(StereoVisualizer::default()),
+    //     2 => Box::new(MonoVisualizer::default()),
+    //     _ => return,
+    // }
+    // self.visualizer = Box::new(MonoVisualizer::default());
+    // }
 }

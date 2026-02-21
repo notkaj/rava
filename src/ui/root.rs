@@ -1,9 +1,13 @@
-use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
+use ratatui::{
+    buffer::Buffer,
+    layout::Rect,
+    widgets::{Widget, WidgetRef},
+};
 
-use crate::app::App;
+use crate::{app::App, visualize::visual::Visual};
 
-impl Widget for &App {
+impl<T: Visual + WidgetRef> Widget for &App<T> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        self.visualizer.render(area, buf);
+        self.visualizer.render_ref(area, buf);
     }
 }

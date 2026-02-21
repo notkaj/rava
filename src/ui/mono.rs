@@ -9,12 +9,12 @@ use ratatui::{
     buffer::Buffer,
     layout::Rect,
     style::{Color, Style},
-    widgets::Widget,
+    widgets::{Widget, WidgetRef},
 };
 use tui_barchart_ext::barchart::{Bar, BarChart};
 
-impl Widget for &MonoVisualizer {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+impl WidgetRef for MonoVisualizer {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
         //TODO: maybe only recalculate this on terminal resize?
         let bars = self.bars() as u16;
         let width = area.width as u64;

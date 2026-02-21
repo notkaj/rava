@@ -1,4 +1,7 @@
-use crate::app::App;
+use crate::{
+    app::App,
+    visualize::{mono::MonoVisualizer, stereo::StereoVisualizer},
+};
 
 mod app;
 mod capture;
@@ -13,7 +16,7 @@ mod visualize;
 async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     let terminal = ratatui::init();
-    let result = App::new().run(terminal).await;
+    let result = App::<StereoVisualizer>::new().run(terminal).await;
     ratatui::restore();
     result
 }

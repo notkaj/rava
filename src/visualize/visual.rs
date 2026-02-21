@@ -15,9 +15,11 @@ pub trait Visual {
     fn bars(&self) -> usize;
     fn input_max(&self) -> u32;
     fn color_index(&self) -> usize;
+    fn get_mode(&self) -> Mode;
+    fn set_mode(&mut self, mode: Mode);
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub enum Mode {
     #[default]
     Default,
@@ -54,6 +56,7 @@ impl From<Direction> for ratatui::layout::Direction {
         }
     }
 }
+
 #[derive(Default)]
 pub enum Orientation {
     #[default]
