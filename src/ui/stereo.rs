@@ -86,7 +86,7 @@ fn horizontal_barchart(vis: &StereoVisualizer, bar_width: u16, width: u64) -> Ba
 
 fn barchart_stereo(vis: &StereoVisualizer, bar_width: u16, max: u64) -> BarChart<'static> {
     let bars = bars_stereo(vis);
-    BarChart::new(bars).bar_width(bar_width).max(max)
+    BarChart::new(bars).bar_width(bar_width).max(max * 8)
 }
 
 fn render_vert(vis: &StereoVisualizer, area: Rect, buf: &mut Buffer) {
