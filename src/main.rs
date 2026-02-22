@@ -18,11 +18,23 @@ async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     let terminal = ratatui::init();
     let args = Args::parse();
-    let is_stereo = args.stereo;
-    let result = if is_stereo {
-        App::<StereoVisualizer>::new().run(terminal).await
-    } else {
-        App::<MonoVisualizer>::new().run(terminal).await
+    // let result = if is_stereo {
+    //     App::<StereoVisualizer>::default().run(terminal).await
+    // } else {
+    //     App::<MonoVisualizer>::default().run(terminal).await
+    // };
+    let result = match (args.stereo, args.centered, args.inverted) {
+        (true, true, _) => {
+            App::new(StereoVisualizer::default().centered())
+                .run(terminal)
+                .await
+        }
+        (true, _, true) => {
+            App::new(StereoVisualizer::default().inverted())
+                .run(terminal)
+                .await
+        }
+        (_, _, _) => App::new(MonoVisualizer::default()).run(terminal).await,
     };
     ratatui::restore();
     result
@@ -32,4 +44,10 @@ async fn main() -> color_eyre::Result<()> {
 struct Args {
     #[arg(short, long)]
     stereo: bool,
+    #[arg(short, long)]
+    centered: bool,
+    #[arg(short, long)]
+    inverted: bool,
+    // #[arg(short, long)]
+    // vertical: bool,
 }

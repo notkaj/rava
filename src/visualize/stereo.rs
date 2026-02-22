@@ -53,6 +53,16 @@ impl StereoVisualizer {
             orientation,
         }
     }
+
+    pub fn centered(mut self) -> Self {
+        self.orientation = Orientation::Centered;
+        self
+    }
+
+    pub fn inverted(mut self) -> Self {
+        self.orientation = Orientation::Inverted;
+        self
+    }
 }
 
 impl Visual for StereoVisualizer {

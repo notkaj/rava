@@ -53,8 +53,11 @@ impl<T: Visual + WidgetRef + Default> Default for App<T> {
 
 impl<T: Visual + WidgetRef + Default> App<T> {
     /// Constructs a new instance of [`App`].
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(vis: T) -> Self {
+        Self {
+            visualizer: vis,
+            ..Default::default()
+        }
     }
 
     /// Run the application's main loop.
