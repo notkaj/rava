@@ -19,12 +19,12 @@ pub struct AverageSpectrum {
 
 impl Default for AverageSpectrum {
     fn default() -> Self {
-        AverageSpectrum::new(DEFAULT_RANGE_COUNT)
+        AverageSpectrum::new(DEFAULT_RANGE_COUNT, DEFAULT_SCALE)
     }
 }
 
 impl AverageSpectrum {
-    pub fn new(ranges: usize) -> Self {
+    pub fn new(ranges: usize, scale: f32) -> Self {
         // eprintln!("Initializeing Audio Stream");
         let capturer = default_capturer();
         let amps = vec![0.0; ranges];
@@ -34,7 +34,6 @@ impl AverageSpectrum {
         let sample_len = DEFAULT_QUANT;
         let _ = tx.try_send(vec![0.0; sample_len]);
 
-        let scale = DEFAULT_SCALE;
         let res = Self {
             capturer,
             ranges,
