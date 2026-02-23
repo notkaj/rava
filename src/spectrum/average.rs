@@ -71,7 +71,7 @@ impl AverageSpectrum {
 impl Spectral for AverageSpectrum {
     fn update(&mut self) {
         let Ok(transform) = self.rx.try_recv() else {
-            // TODO: recover form this
+            // TODO: recover from this
             panic!("ui and fft out of sync");
         };
 
