@@ -2,7 +2,7 @@ use crate::{
     ui::popup::Popup,
     visualize::{
         mono::MonoVisualizer,
-        visual::{Direction, Visual},
+        {Direction, visual::Visual},
     },
 };
 use ratatui::{

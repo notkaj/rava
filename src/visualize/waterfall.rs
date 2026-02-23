@@ -1,6 +1,6 @@
 use crate::{
     spectrum::{average::AverageSpectrum, spectral::Spectral},
-    visualize::visual::{COLORS, DEFAULT_COLOR_INDEX, Mode, Visual},
+    visualize::{COLORS, DEFAULT_COLOR_INDEX, Mode, visual::Visual},
 };
 use bounded_vec_deque::BoundedVecDeque;
 

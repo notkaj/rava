@@ -1,6 +1,5 @@
 use core::f64;
 
-use rand::{RngExt, rng};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,

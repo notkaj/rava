@@ -2,7 +2,7 @@ use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
 
 use crate::{
     ui::popup::{colors::ColorPickPopup, input::InputPopup, keys::KeysPopup, stats::StatsPopup},
-    visualize::visual::{COLORS, Mode, Visual},
+    visualize::{COLORS, Mode, visual::Visual},
 };
 
 pub(super) mod colors;

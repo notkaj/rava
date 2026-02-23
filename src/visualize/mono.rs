@@ -3,9 +3,9 @@ use ratatui::style::Color;
 use crate::filter::{Filter, NormalFilter};
 use crate::spectrum::average::AverageSpectrum;
 use crate::spectrum::spectral::Spectral;
-use crate::visualize::visual::Mode;
-use crate::visualize::visual::{COLORS, Visual};
-use crate::visualize::visual::{DEFAULT_COLOR_INDEX, Direction};
+use crate::visualize::Mode;
+use crate::visualize::{COLORS, visual::Visual};
+use crate::visualize::{DEFAULT_COLOR_INDEX, Direction};
 
 pub struct MonoVisualizer {
     pub color_index: usize,

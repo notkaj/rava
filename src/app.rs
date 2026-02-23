@@ -1,5 +1,5 @@
 use crate::event::{AppEvent, Event, EventHandler};
-use crate::visualize::visual::{Mode, Visual};
+use crate::visualize::{Mode, visual::Visual};
 use ratatui::widgets::WidgetRef;
 use ratatui::{
     DefaultTerminal,

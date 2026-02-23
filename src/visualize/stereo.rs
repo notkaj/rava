@@ -3,7 +3,7 @@ use ratatui::style::Color;
 use crate::{
     filter::{Filter, NormalFilter},
     spectrum::{spectral::Spectral, stereo::StereoSpectrum},
-    visualize::visual::{COLORS, DEFAULT_COLOR_INDEX, Direction, Mode, Orientation, Visual},
+    visualize::{COLORS, DEFAULT_COLOR_INDEX, Direction, Mode, Orientation, visual::Visual},
 };
 
 pub struct StereoVisualizer {
