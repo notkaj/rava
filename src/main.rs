@@ -35,6 +35,7 @@ async fn main() -> color_eyre::Result<()> {
                 .run(terminal)
                 .await
         }
+        (true, _, _, false) => App::new(StereoVisualizer::default()).run(terminal).await,
         (_, _, _, _) => App::new(MonoVisualizer::default()).run(terminal).await,
     };
     ratatui::restore();

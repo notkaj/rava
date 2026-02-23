@@ -11,8 +11,8 @@ use crate::spectrum::spectral::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATI
 pub struct StereoSpectrum {
     capturer: Box<dyn Capturer>,
     pub ranges: usize,
-    pub left_amps: Vec<u32>,
-    pub right_amps: Vec<u32>,
+    pub left_amps: Vec<f32>,
+    pub right_amps: Vec<f32>,
     scale: f32, // should be moved out to Visualizer?
     left_tx: Sender<Vec<f32>>,
     left_rx: Receiver<Vec<f32>>,
@@ -30,8 +30,8 @@ impl Default for StereoSpectrum {
 impl StereoSpectrum {
     pub fn new(ranges: usize) -> Self {
         let capturer = default_interleaved_capturer();
-        let left_amps = vec![0; ranges];
-        let right_amps = vec![0; ranges];
+        let left_amps = vec![0.0; ranges];
+        let right_amps = vec![0.0; ranges];
 
         let (left_tx, left_rx_from_spectrum) = mpsc::channel(1);
         let (left_tx_to_spectrum, left_rx) = mpsc::channel(1);
@@ -145,23 +145,23 @@ impl Spectral for StereoSpectrum {
             let right_avg = right_transform[start..end].iter().sum::<f32>() / range_len as f32;
             let left_root = left_avg.sqrt();
             let right_root = right_avg.sqrt();
-            self.left_amps[i] = (left_root * self.scale) as u32;
-            self.right_amps[i] = (right_root * self.scale) as u32;
+            self.left_amps[i] = left_root * self.scale;
+            self.right_amps[i] = right_root * self.scale;
         }
     }
 
     fn add_range(&mut self) {
         self.ranges += 1;
-        self.left_amps = vec![0; self.ranges];
-        self.right_amps = vec![0; self.ranges];
+        self.left_amps = vec![0.0; self.ranges];
+        self.right_amps = vec![0.0; self.ranges];
         // let len = (self.ranges - 1) * 2;
         // self.capturer = Capturer::new(len);
     }
 
     fn remove_range(&mut self) {
         self.ranges -= 1;
-        self.left_amps = vec![0; self.ranges];
-        self.right_amps = vec![0; self.ranges];
+        self.left_amps = vec![0.0; self.ranges];
+        self.right_amps = vec![0.0; self.ranges];
         // let len = (self.ranges - 1) * 2;
         // self.capturer = Capturer::new(len);
     }
@@ -183,8 +183,8 @@ impl Spectral for StereoSpectrum {
     }
 
     fn max_amp(&self) -> Option<u32> {
-        let left = self.left_amps.iter().max().copied();
-        let right = self.right_amps.iter().max().copied();
+        let left = self.left_amps.iter().map(|&f| f as u32).max();
+        let right = self.right_amps.iter().map(|&f| f as u32).max();
         cmp::max(left, right)
     }
 }

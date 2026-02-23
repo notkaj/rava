@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 pub trait Filter {
-    fn apply(&self, input: &[u32], out: &mut [u32]);
+    fn apply(&self, input: &[f32], out: &mut [u32]);
 }
 
 pub struct NormalFilter {
@@ -28,10 +28,11 @@ impl NormalFilter {
 }
 
 impl Filter for NormalFilter {
-    fn apply(&self, input: &[u32], out: &mut [u32]) {
+    fn apply(&self, input: &[f32], out: &mut [u32]) {
         for (i, e) in input.iter().enumerate() {
-            if *e > out[i] {
-                let diff = *e - out[i];
+            let e = *e as u32;
+            if e > out[i] {
+                let diff = e - out[i];
                 out[i] += (diff as f32 * self.rate_of_increase) as u32;
                 // out[i] = *e;
             } else {
@@ -71,9 +72,9 @@ impl ExperimentalFilter {
 }
 
 impl Filter for ExperimentalFilter {
-    fn apply(&self, input: &[u32], out: &mut [u32]) {
+    fn apply(&self, input: &[f32], out: &mut [u32]) {
         for (i, e) in input.iter().enumerate() {
-            let entry = *e;
+            let entry = *e as u32;
             let tick = self.ticks.borrow()[i];
             if tick == 0 && entry > out[i] {
                 // let diff = entry - out[i];
@@ -112,7 +113,7 @@ impl SmoothFilter {
 
 impl Filter for SmoothFilter {
     // i haven't tested this at all
-    fn apply(&self, input: &[u32], out: &mut [u32]) {
+    fn apply(&self, input: &[f32], out: &mut [u32]) {
         for (i, e) in input.iter().enumerate() {
             let diff: i32 = *e as i32 - out[i] as i32;
             let change = diff as f32 * self.rate_of_diff;
@@ -125,9 +126,10 @@ impl Filter for SmoothFilter {
 #[allow(dead_code)]
 #[derive(Default)]
 pub struct RawFilter;
-
 impl Filter for RawFilter {
-    fn apply(&self, raw: &[u32], out: &mut [u32]) {
-        out.copy_from_slice(raw);
+    fn apply(&self, raw: &[f32], out: &mut [u32]) {
+        for (i, e) in raw.iter().enumerate() {
+            out[i] = *e as u32;
+        }
     }
 }

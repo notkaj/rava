@@ -10,7 +10,7 @@ use crate::spectrum::spectral::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATI
 pub struct AverageSpectrum {
     capturer: Box<dyn Capturer>,
     pub ranges: usize,
-    pub amps: Vec<u32>,
+    pub amps: Vec<f32>,
     scale: f32, // should be moved out to Visualizer?
     tx: Sender<Vec<f32>>,
     rx: Receiver<Vec<f32>>,
@@ -27,7 +27,7 @@ impl AverageSpectrum {
     pub fn new(ranges: usize) -> Self {
         // eprintln!("Initializeing Audio Stream");
         let capturer = default_capturer();
-        let amps = vec![0; ranges];
+        let amps = vec![0.0; ranges];
 
         let (tx, rx_from_spectrum) = mpsc::channel(1);
         let (tx_to_spectrum, rx) = mpsc::channel(1);
@@ -95,20 +95,20 @@ impl Spectral for AverageSpectrum {
             let end = start + range_len;
             let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
             let root = avg.sqrt();
-            self.amps[i] = (root * self.scale) as u32;
+            self.amps[i] = root * self.scale;
         }
     }
 
     fn add_range(&mut self) {
         self.ranges += 1;
-        self.amps = vec![0; self.ranges];
+        self.amps = vec![0.0; self.ranges];
         // let len = (self.ranges - 1) * 2;
         // self.capturer = Capturer::new(len);
     }
 
     fn remove_range(&mut self) {
         self.ranges -= 1;
-        self.amps = vec![0; self.ranges];
+        self.amps = vec![0.0; self.ranges];
         // let len = (self.ranges - 1) * 2;
         // self.capturer = Capturer::new(len);
     }
@@ -130,6 +130,6 @@ impl Spectral for AverageSpectrum {
     }
 
     fn max_amp(&self) -> Option<u32> {
-        self.amps.iter().max().copied()
+        self.amps.iter().map(|&n| n as u32).max()
     }
 }
