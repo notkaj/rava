@@ -4,9 +4,9 @@ use crate::{
 };
 use bounded_vec_deque::BoundedVecDeque;
 
-struct Waterfall {
+pub struct Waterfall {
     spectrum: AverageSpectrum,
-    pub out: BoundedVecDeque<Vec<u32>>,
+    pub out: BoundedVecDeque<Vec<f64>>,
     color_index: usize,
     mode: Mode,
 }
@@ -14,8 +14,10 @@ struct Waterfall {
 impl Default for Waterfall {
     fn default() -> Self {
         let spectrum = AverageSpectrum::default();
-        let out = BoundedVecDeque::with_capacity(8, 8);
+        let mut out = BoundedVecDeque::new(8);
+        out.push_front(vec![0.0; spectrum.ranges]);
         let color_index = DEFAULT_COLOR_INDEX;
+
         let mode = Default::default();
         Self {
             spectrum,
@@ -27,9 +29,10 @@ impl Default for Waterfall {
 }
 
 impl Waterfall {
-    fn new(bound: usize) -> Self {
+    pub fn new(bound: usize) -> Self {
         let spectrum = AverageSpectrum::default();
-        let out = BoundedVecDeque::with_capacity(bound, bound);
+        let mut out = BoundedVecDeque::new(bound);
+        out.push_front(vec![0.0; spectrum.ranges]);
         let color_index = DEFAULT_COLOR_INDEX;
         let mode = Default::default();
         Self {
@@ -44,7 +47,8 @@ impl Waterfall {
 impl Visual for Waterfall {
     fn update(&mut self) {
         self.spectrum.update();
-        self.out.push_front(self.spectrum.amps.clone());
+        self.out
+            .push_back(self.spectrum.amps.iter().map(|&u| u as f64).collect());
     }
 
     fn add_bar(&mut self) {

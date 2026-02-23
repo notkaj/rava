@@ -1,6 +1,6 @@
 use crate::{
     app::App,
-    visualize::{mono::MonoVisualizer, stereo::StereoVisualizer},
+    visualize::{mono::MonoVisualizer, stereo::StereoVisualizer, waterfall::Waterfall},
 };
 use clap::Parser;
 
@@ -23,18 +23,19 @@ async fn main() -> color_eyre::Result<()> {
     // } else {
     //     App::<MonoVisualizer>::default().run(terminal).await
     // };
-    let result = match (args.stereo, args.centered, args.inverted) {
-        (true, true, _) => {
+    let result = match (args.stereo, args.centered, args.inverted, args.waterfall) {
+        (false, false, false, true) => App::new(Waterfall::default()).run(terminal).await,
+        (true, true, _, false) => {
             App::new(StereoVisualizer::default().centered())
                 .run(terminal)
                 .await
         }
-        (true, _, true) => {
+        (true, _, true, false) => {
             App::new(StereoVisualizer::default().inverted())
                 .run(terminal)
                 .await
         }
-        (_, _, _) => App::new(MonoVisualizer::default()).run(terminal).await,
+        (_, _, _, _) => App::new(MonoVisualizer::default()).run(terminal).await,
     };
     ratatui::restore();
     result
@@ -48,6 +49,8 @@ struct Args {
     centered: bool,
     #[arg(short, long)]
     inverted: bool,
+    #[arg(short, long)]
+    waterfall: bool,
     // #[arg(short, long)]
     // vertical: bool,
 }
