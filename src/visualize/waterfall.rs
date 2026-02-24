@@ -1,14 +1,20 @@
+use std::time::{Duration, Instant};
+
 use crate::{
     spectrum::{average::AverageSpectrum, spectral::Spectral},
     visualize::{COLORS, DEFAULT_COLOR_INDEX, Mode, visual::Visual},
 };
 use bounded_vec_deque::BoundedVecDeque;
 
+const DEFAULT_TICK_RATE: Duration = Duration::from_millis(250);
+
 pub struct Waterfall {
     spectrum: AverageSpectrum,
     pub out: BoundedVecDeque<Vec<f64>>,
     color_index: usize,
     mode: Mode,
+    tick_rate: Duration,
+    last_tick: Instant,
 }
 
 impl Default for Waterfall {
@@ -17,35 +23,39 @@ impl Default for Waterfall {
         let mut out = BoundedVecDeque::new(8);
         out.push_front(vec![0.0; spectrum.ranges]);
         let color_index = DEFAULT_COLOR_INDEX;
-
+        let tick_rate = DEFAULT_TICK_RATE;
         let mode = Default::default();
+        let last_tick = Instant::now();
         Self {
             spectrum,
             out,
             color_index,
             mode,
+            tick_rate,
+            last_tick,
         }
     }
 }
 
 impl Waterfall {
-    pub fn new(bound: usize) -> Self {
-        let spectrum = AverageSpectrum::default();
-        let mut out = BoundedVecDeque::new(bound);
-        out.push_front(vec![0.0; spectrum.ranges]);
-        let color_index = DEFAULT_COLOR_INDEX;
-        let mode = Default::default();
+    pub fn new(curves: usize, points: usize, scale: f32) -> Self {
+        let spectrum = AverageSpectrum::new(curves, scale);
+        let mut out = BoundedVecDeque::new(curves);
+        out.push_front(vec![0.0; points]);
         Self {
             spectrum,
             out,
-            color_index,
-            mode,
+            ..Default::default()
         }
     }
 }
 
 impl Visual for Waterfall {
     fn update(&mut self) {
+        if self.last_tick.elapsed() < self.tick_rate {
+            return;
+        }
+        self.last_tick = Instant::now();
         self.spectrum.update();
         self.out
             .push_back(self.spectrum.amps.iter().map(|&u| u as f64).collect());

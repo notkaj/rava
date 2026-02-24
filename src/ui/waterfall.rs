@@ -44,4 +44,19 @@ fn data(waterfall: &Waterfall, width: u16, height: u16) -> Vec<(f64, f64)> {
     //     data.push((i as f64, rng.random::<f64>() * 20.0));
     // }
     // data
+    // let len = waterfall.out[0].len();
+    // let mut res = vec![(0.0, 0.0); len];
+    // for (i, e) in res.iter_mut().enumerate().take(len) {
+    //     *e = (
+    //         i as f64,
+    //         if i % 3 == 0 {
+    //             100.0
+    //         } else if i % 3 == 1 {
+    //             200.0
+    //         } else {
+    //             0.0
+    //         },
+    //     );
+    // }
+    // res
 }
