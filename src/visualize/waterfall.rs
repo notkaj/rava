@@ -19,8 +19,8 @@ pub struct Waterfall {
 
 impl Default for Waterfall {
     fn default() -> Self {
-        let spectrum = AverageSpectrum::default();
-        let mut out = BoundedVecDeque::new(8);
+        let spectrum = AverageSpectrum::new(24, 10.0);
+        let mut out = BoundedVecDeque::new(3);
         out.push_front(vec![0.0; spectrum.ranges]);
         let color_index = DEFAULT_COLOR_INDEX;
         let tick_rate = DEFAULT_TICK_RATE;
@@ -38,8 +38,9 @@ impl Default for Waterfall {
 }
 
 impl Waterfall {
+    #[allow(dead_code)]
     pub fn new(curves: usize, points: usize, scale: f32) -> Self {
-        let spectrum = AverageSpectrum::new(curves, scale);
+        let spectrum = AverageSpectrum::new(points, scale);
         let mut out = BoundedVecDeque::new(curves);
         out.push_front(vec![0.0; points]);
         Self {
@@ -58,7 +59,7 @@ impl Visual for Waterfall {
         self.last_tick = Instant::now();
         self.spectrum.update();
         self.out
-            .push_back(self.spectrum.amps.iter().map(|&u| u as f64).collect());
+            .push_front(self.spectrum.amps.iter().map(|&u| u as f64).collect());
     }
 
     fn add_bar(&mut self) {
