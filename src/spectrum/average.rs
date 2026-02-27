@@ -6,6 +6,7 @@ use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_capturer};
 use crate::fft::Fft;
 use crate::spectrum::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, spectral::Spectral};
+use crate::spectrum::{apply_hann_window, hann_multipliers};
 
 pub struct AverageSpectrum {
     capturer: Box<dyn Capturer>,
@@ -15,6 +16,7 @@ pub struct AverageSpectrum {
     tx: Sender<Vec<f32>>,
     rx: Receiver<Vec<f32>>,
     pub sample_len: usize,
+    multipliers: Vec<f32>,
 }
 
 impl Default for AverageSpectrum {
@@ -34,6 +36,8 @@ impl AverageSpectrum {
         let sample_len = DEFAULT_QUANT;
         let _ = tx.try_send(vec![0.0; sample_len]);
 
+        let multipliers = hann_multipliers(sample_len);
+
         let res = Self {
             capturer,
             ranges,
@@ -42,6 +46,7 @@ impl AverageSpectrum {
             tx,
             rx,
             sample_len,
+            multipliers,
         };
         res.init(rx_from_spectrum, tx_to_spectrum)
     }
@@ -75,12 +80,15 @@ impl Spectral for AverageSpectrum {
         };
 
         let transform_len = transform.len();
-        let sample = AverageSpectrum::sample();
+        let mut sample = AverageSpectrum::sample();
+
         if sample.is_empty() {
             // maybe handle if this errors
             let _ = self.tx.try_send(vec![0.0; transform_len]);
             return;
         }
+
+        apply_hann_window(&mut sample, &self.multipliers);
 
         if self.tx.try_send(sample).is_err() {
             panic!("fft reviecer dropped or full");

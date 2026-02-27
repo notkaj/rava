@@ -7,6 +7,7 @@ use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_interleaved_capturer};
 use crate::fft::Fft;
 use crate::spectrum::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, spectral::Spectral};
+use crate::spectrum::{apply_hann_window, hann_multipliers};
 
 pub struct StereoSpectrum {
     capturer: Box<dyn Capturer>,
@@ -19,6 +20,7 @@ pub struct StereoSpectrum {
     right_tx: Sender<Vec<f32>>,
     right_rx: Receiver<Vec<f32>>,
     pub sample_len: usize,
+    multipliers: Vec<f32>,
 }
 
 impl Default for StereoSpectrum {
@@ -41,6 +43,8 @@ impl StereoSpectrum {
         let _ = left_tx.try_send(vec![0.0; sample_len]);
         let _ = right_tx.try_send(vec![0.0; sample_len]);
 
+        let multipliers = hann_multipliers(sample_len);
+
         let scale = DEFAULT_SCALE;
         let res = Self {
             capturer,
@@ -53,6 +57,7 @@ impl StereoSpectrum {
             right_tx,
             right_rx,
             sample_len,
+            multipliers,
         };
         res.init(
             left_rx_from_spectrum,
@@ -114,7 +119,7 @@ impl Spectral for StereoSpectrum {
         };
 
         let transform_len = left_transform.len();
-        let (left_sample, right_sample) = StereoSpectrum::sample();
+        let (mut left_sample, mut right_sample) = StereoSpectrum::sample();
 
         if left_sample.is_empty() {
             // maybe handle if this errors
@@ -126,6 +131,9 @@ impl Spectral for StereoSpectrum {
             let _ = self.right_tx.try_send(vec![0.0; transform_len]);
             return;
         }
+
+        apply_hann_window(&mut left_sample, &self.multipliers);
+        apply_hann_window(&mut right_sample, &self.multipliers);
 
         if self.left_tx.try_send(left_sample).is_err() {
             panic!("fft reviecer dropped or full");
