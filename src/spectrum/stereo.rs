@@ -6,7 +6,7 @@ use tokio::sync::mpsc::{self, Receiver, Sender};
 use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_interleaved_capturer};
 use crate::fft::Fft;
-use crate::spectrum::spectral::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, Spectral};
+use crate::spectrum::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, spectral::Spectral};
 
 pub struct StereoSpectrum {
     capturer: Box<dyn Capturer>,

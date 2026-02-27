@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{Block, BorderType, Clear, Widget},
 };
 
-use crate::{spectrum::spectral::max_cap, ui::popup::HORIZ_PERCENT};
+use crate::{spectrum::max_cap, ui::popup::HORIZ_PERCENT};
 use tui_barchart_ext::barchart::{Bar, BarChart};
 
 pub struct InputPopup {
