@@ -20,7 +20,7 @@ impl WidgetRef for Waterfall {
         let amps = self.out[0].len();
 
         let data = &self.out;
-        let gap = 5.0;
+        let gap = 1.0;
         Canvas::default()
             .x_bounds([0.0, (amps - 1) as f64])
             .y_bounds([area.top() as f64, area.bottom() as f64])
@@ -48,19 +48,19 @@ impl WidgetRef for Waterfall {
                         //         }
                         //
                         //         c.layer();
-                        let color = if i % 3 == 0 {
-                            Color::Red
-                        } else if i % 3 == 1 {
-                            Color::Blue
-                        } else {
-                            Color::Green
-                        };
+                        // let color = if i % 3 == 0 {
+                        //     Color::Red
+                        // } else if i % 3 == 1 {
+                        //     Color::Blue
+                        // } else {
+                        //     Color::Green
+                        // };
                         c.draw(&Line {
                             x1,
                             y1,
                             x2,
                             y2,
-                            color,
+                            color: Color::Reset,
                         });
                         j += 1.0;
                     }

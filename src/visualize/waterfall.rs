@@ -6,7 +6,7 @@ use crate::{
 };
 use bounded_vec_deque::BoundedVecDeque;
 
-const DEFAULT_TICK_RATE: Duration = Duration::from_millis(250);
+const DEFAULT_TICK_RATE: Duration = Duration::from_millis(100 / 3);
 
 pub struct Waterfall {
     spectrum: AverageSpectrum,
@@ -20,7 +20,7 @@ pub struct Waterfall {
 impl Default for Waterfall {
     fn default() -> Self {
         let spectrum = AverageSpectrum::new(24, 10.0);
-        let mut out = BoundedVecDeque::new(3);
+        let mut out = BoundedVecDeque::new(90);
         out.push_front(vec![0.0; spectrum.ranges]);
         let color_index = DEFAULT_COLOR_INDEX;
         let tick_rate = DEFAULT_TICK_RATE;
@@ -63,12 +63,12 @@ impl Visual for Waterfall {
     }
 
     fn add_bar(&mut self) {
-        self.out.clear();
+        // self.out.clear();
         self.spectrum.add_range()
     }
 
     fn remove_bar(&mut self) {
-        self.out.clear();
+        // self.out.clear();
         self.spectrum.add_range()
     }
 
