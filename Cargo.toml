@@ -21,3 +21,6 @@ bytemuck = "1.24.0"
 tui-barchart-ext = "0.1.2"
 clap = { version = "4.5.60", features = ["derive"] }
 bounded-vec-deque = "0.1.1"
+toml = { version = "1.0.3", features = ["serde"] }
+serde = { version = "1.0.228", features = ["derive"] }
+better_default = "1.0.5"

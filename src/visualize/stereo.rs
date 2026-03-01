@@ -1,3 +1,4 @@
+use better_default::Default;
 use ratatui::style::Color;
 
 use crate::{
@@ -6,51 +7,32 @@ use crate::{
     visualize::{COLORS, DEFAULT_COLOR_INDEX, Direction, Mode, Orientation, visual::Visual},
 };
 
+#[derive(Default)]
 pub struct StereoVisualizer {
+    #[default(DEFAULT_COLOR_INDEX)]
     pub color_index: usize,
     spectrum: StereoSpectrum,
     pub left_out: Vec<u32>,
     pub right_out: Vec<u32>,
+    #[default(Box::new(NormalFilter::default()))]
     filter: Box<dyn Filter>,
     pub mode: Mode,
     pub direction: Direction,
     pub orientation: Orientation,
 }
 
-impl Default for StereoVisualizer {
-    fn default() -> Self {
-        let filter = Box::new(NormalFilter::default());
-        Self::new(
-            DEFAULT_COLOR_INDEX,
-            filter,
-            Default::default(),
-            Default::default(),
-            Default::default(),
-        )
-    }
-}
-
 impl StereoVisualizer {
-    pub fn new(
-        color_index: usize,
-        filter: Box<dyn Filter>,
-        spectrum: StereoSpectrum,
-        direction: Direction,
-        orientation: Orientation,
-    ) -> Self {
-        let bars = spectrum.ranges;
+    pub fn new(bars: usize, direction: Direction, orientation: Orientation) -> Self {
+        let spectrum = StereoSpectrum::new(bars);
         let left_out = vec![0; bars];
         let right_out = vec![0; bars];
-        let mode = Default::default();
         Self {
-            color_index,
             spectrum,
             left_out,
             right_out,
-            filter,
-            mode,
             direction,
             orientation,
+            ..Default::default()
         }
     }
 
