@@ -30,7 +30,7 @@ fn parse(path: &str) -> Result<Config, Box<dyn Error>> {
 #[derive(Default, Debug, Deserialize)]
 pub(crate) struct Config {
     pub visualizer: Visualizer,
-    pub input: Input,
+    // pub input: Input,
 }
 
 #[derive(Default, Debug, Deserialize)]
@@ -42,8 +42,8 @@ pub(crate) struct Visualizer {
     pub bars: usize,
     #[default(24.0)]
     pub scale: f32,
-    #[default(String::from("White"))]
-    pub color: String,
+    // #[default(String::from("White"))]
+    // pub color: String,
     #[default(30)]
     pub curves: usize,
 }
@@ -71,6 +71,7 @@ pub(crate) enum Orientation {
     Inverted,
 }
 
+#[allow(dead_code)]
 #[derive(Default, Debug, Deserialize)]
 pub(crate) struct Input {
     #[default(String::from("Pipewire"))]

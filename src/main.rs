@@ -123,7 +123,7 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
         return App::new(waterfall).run(terminal).await;
     }
 
-    let mono = MonoVisualizer::default();
+    let mono = MonoVisualizer::new(bars, scale, direction);
     App::new(mono).run(terminal).await
 }
 

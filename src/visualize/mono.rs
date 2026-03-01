@@ -1,3 +1,4 @@
+use better_default::Default;
 use ratatui::style::Color;
 
 use crate::filter::{Filter, NormalFilter};
@@ -7,44 +8,39 @@ use crate::visualize::Mode;
 use crate::visualize::{COLORS, visual::Visual};
 use crate::visualize::{DEFAULT_COLOR_INDEX, Direction};
 
+#[derive(Default)]
 pub struct MonoVisualizer {
+    #[default(DEFAULT_COLOR_INDEX)]
     pub color_index: usize,
     spectrum: AverageSpectrum,
     out: Vec<u32>,
+    #[default(Box::new(NormalFilter::default()))]
     filter: Box<dyn Filter>,
     pub mode: Mode,
     pub direction: Direction,
 }
 
-impl Default for MonoVisualizer {
-    fn default() -> Self {
-        let filter = Box::new(NormalFilter::default());
-        Self::new(
-            DEFAULT_COLOR_INDEX,
-            filter,
-            Default::default(),
-            Default::default(),
-        )
-    }
-}
+// impl Default for MonoVisualizer {
+//     fn default() -> Self {
+//         let filter = Box::new(NormalFilter::default());
+//         Self::new(
+//             DEFAULT_COLOR_INDEX,
+//             filter,
+//             Default::default(),
+//             Default::default(),
+//         )
+//     }
+// }
 
 impl MonoVisualizer {
-    pub fn new(
-        color_index: usize,
-        filter: Box<dyn Filter>,
-        spectrum: AverageSpectrum,
-        direction: Direction,
-    ) -> Self {
-        let bars = spectrum.ranges;
+    pub fn new(bars: usize, scale: f32, direction: Direction) -> Self {
+        let spectrum = AverageSpectrum::new(bars, scale);
         let out = vec![0; bars];
-        let mode = Default::default();
         Self {
-            color_index,
             spectrum,
             out,
-            filter,
-            mode,
             direction,
+            ..Default::default()
         }
     }
 

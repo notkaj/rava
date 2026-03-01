@@ -36,11 +36,15 @@ impl StereoVisualizer {
         }
     }
 
+    #[allow(dead_code)]
+    #[must_use]
     pub fn centered(mut self) -> Self {
         self.orientation = Orientation::Centered;
         self
     }
 
+    #[allow(dead_code)]
+    #[must_use]
     pub fn inverted(mut self) -> Self {
         self.orientation = Orientation::Inverted;
         self
