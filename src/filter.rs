@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use crate::event::TICK_FPS;
 
 pub trait Filter {
@@ -118,7 +116,7 @@ const DEFAULT_PEAK_DUR_TICKS: u8 = 5;
 pub struct ExperimentalFilter {
     rate_of_decay: f32,
     peak_dur_ticks: u8,
-    ticks: RefCell<Vec<u8>>,
+    ticks: Vec<u8>,
 }
 
 #[allow(dead_code)]
@@ -126,7 +124,7 @@ impl ExperimentalFilter {
     pub fn new(len: usize, rate_of_decay: f32, peak_dur_ticks: u8) -> Self {
         // TODO: this vec is never adjusted, so if the number of bars is
         // ever increased during runtime, the program WILL panic
-        let ticks = RefCell::new(vec![0; len]);
+        let ticks = vec![0; len];
         Self {
             rate_of_decay,
             peak_dur_ticks,
@@ -143,15 +141,15 @@ impl Filter for ExperimentalFilter {
     fn apply(&mut self, input: &[f32], out: &mut [u32]) {
         for (i, e) in input.iter().enumerate() {
             let entry = *e as u32;
-            let tick = self.ticks.borrow()[i];
+            let tick = self.ticks[i];
             if tick == 0 && entry > out[i] {
                 // let diff = entry - out[i];
                 // out[i] += (diff as f32 * self.rate_of_increase) as u32;
                 out[i] = entry;
-                self.ticks.borrow_mut()[i] = self.peak_dur_ticks;
+                self.ticks[i] = self.peak_dur_ticks;
             } else {
                 // i don't think this needs to be saturated
-                self.ticks.borrow_mut()[i] = tick.saturating_sub(1);
+                self.ticks[i] = tick.saturating_sub(1);
                 let curr = out[i];
                 let decay = (curr as f32 * self.rate_of_decay).ceil() as u32;
                 out[i] = curr - decay;
