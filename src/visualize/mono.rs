@@ -47,6 +47,12 @@ impl MonoVisualizer {
     pub fn output(&self) -> &[u32] {
         &self.out
     }
+
+    #[must_use = "builder pattern blah blah"]
+    pub fn filter(mut self, filter: Box<dyn Filter>) -> Self {
+        self.filter = filter;
+        self
+    }
 }
 
 impl Visual for MonoVisualizer {

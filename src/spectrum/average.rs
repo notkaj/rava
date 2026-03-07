@@ -101,8 +101,8 @@ impl Spectral for AverageSpectrum {
             let start = (i + OFFSET) * range_len;
             let end = start + range_len;
             let avg = transform[start..end].iter().sum::<f32>() / range_len as f32;
-            // let root = avg.sqrt();
-            self.amps[i] = avg * self.scale;
+            let root = avg.sqrt();
+            self.amps[i] = root * self.scale;
         }
     }
 

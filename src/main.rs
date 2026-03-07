@@ -3,6 +3,7 @@ use std::io::Stdout;
 use crate::{
     app::App,
     config::{VisualizerStyle, config},
+    filter::CavaFilter,
     visualize::{
         Direction, Orientation, mono::MonoVisualizer, stereo::StereoVisualizer,
         waterfall::Waterfall,
@@ -123,7 +124,8 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
         return App::new(waterfall).run(terminal).await;
     }
 
-    let mono = MonoVisualizer::new(bars, scale, direction);
+    let mono =
+        MonoVisualizer::new(bars, scale, direction).filter(Box::new(CavaFilter::from_len(bars)));
     App::new(mono).run(terminal).await
 }
 

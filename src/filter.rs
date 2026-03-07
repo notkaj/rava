@@ -1,7 +1,9 @@
 use std::cell::RefCell;
 
+use crate::event::TICK_FPS;
+
 pub trait Filter {
-    fn apply(&self, input: &[f32], out: &mut [u32]);
+    fn apply(&mut self, input: &[f32], out: &mut [u32]);
 }
 
 pub struct NormalFilter {
@@ -28,7 +30,7 @@ impl NormalFilter {
 }
 
 impl Filter for NormalFilter {
-    fn apply(&self, input: &[f32], out: &mut [u32]) {
+    fn apply(&mut self, input: &[f32], out: &mut [u32]) {
         for (i, e) in input.iter().enumerate() {
             let e = *e as u32;
             if e > out[i] {
@@ -41,6 +43,72 @@ impl Filter for NormalFilter {
                 // let new = curr.saturating_sub(decay);
                 out[i] = curr - decay; // this doesn't overflow somehow
             }
+        }
+    }
+}
+
+const DEFAULT_NOISE_REDUCT: f32 = 0.77;
+
+pub struct CavaFilter {
+    curr_peaks: Vec<f32>,
+    fall_vals: Vec<f32>,
+    noise_reduct: f32,
+    prev_amps: Vec<f32>,
+    post_int_vals: Vec<f32>,
+}
+
+impl CavaFilter {
+    fn new(len: usize, noise_reduct: f32) -> Self {
+        let curr_peaks = vec![0.0; len];
+        let fall_vals = vec![0.0; len];
+        let prev_amps = vec![0.0; len];
+        let post_int_vals = vec![0.0; len];
+        Self {
+            curr_peaks,
+            fall_vals,
+            noise_reduct,
+            prev_amps,
+            post_int_vals,
+        }
+    }
+
+    pub fn from_len(len: usize) -> Self {
+        Self::new(len, DEFAULT_NOISE_REDUCT)
+    }
+
+    pub fn resize(&mut self, len: usize) {
+        self.curr_peaks.resize(len, 0.0);
+        self.fall_vals.resize(len, 0.0);
+        self.prev_amps.resize(len, 0.0);
+        self.post_int_vals.resize(len, 0.0);
+    }
+}
+
+impl Filter for CavaFilter {
+    fn apply(&mut self, input: &[f32], out: &mut [u32]) {
+        let len = input.len();
+        if self.curr_peaks.len() != len {
+            self.resize(len)
+        }
+        // let overshoot = 0;
+        let gravity_mod = ((60.0 / TICK_FPS as f32).powf(2.5) * 1.54 / self.noise_reduct).max(1.0);
+
+        for (i, &amp) in input.iter().enumerate() {
+            let prev = self.prev_amps[i];
+            let mut res = amp;
+            if amp < prev && self.noise_reduct > 0.1 {
+                res = self.curr_peaks[i] * (1.0 - (self.fall_vals[i].powi(2) * gravity_mod));
+                self.fall_vals[i] -= 0.028;
+            } else {
+                self.curr_peaks[i] = amp;
+                self.fall_vals[i] = 0.0;
+            }
+            self.prev_amps[i] = res;
+
+            // process integral smoothing
+            let post_int = self.post_int_vals[i] * self.noise_reduct + res;
+            self.post_int_vals[i] = post_int;
+            out[i] = post_int as u32;
         }
     }
 }
@@ -72,7 +140,7 @@ impl ExperimentalFilter {
 }
 
 impl Filter for ExperimentalFilter {
-    fn apply(&self, input: &[f32], out: &mut [u32]) {
+    fn apply(&mut self, input: &[f32], out: &mut [u32]) {
         for (i, e) in input.iter().enumerate() {
             let entry = *e as u32;
             let tick = self.ticks.borrow()[i];
@@ -113,7 +181,7 @@ impl SmoothFilter {
 
 impl Filter for SmoothFilter {
     // i haven't tested this at all
-    fn apply(&self, input: &[f32], out: &mut [u32]) {
+    fn apply(&mut self, input: &[f32], out: &mut [u32]) {
         for (i, e) in input.iter().enumerate() {
             let diff: i32 = *e as i32 - out[i] as i32;
             let change = diff as f32 * self.rate_of_diff;
@@ -127,7 +195,7 @@ impl Filter for SmoothFilter {
 #[derive(Default)]
 pub struct RawFilter;
 impl Filter for RawFilter {
-    fn apply(&self, raw: &[f32], out: &mut [u32]) {
+    fn apply(&mut self, raw: &[f32], out: &mut [u32]) {
         for (i, e) in raw.iter().enumerate() {
             out[i] = *e as u32;
         }
