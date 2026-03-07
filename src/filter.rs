@@ -122,8 +122,6 @@ pub struct ExperimentalFilter {
 #[allow(dead_code)]
 impl ExperimentalFilter {
     pub fn new(len: usize, rate_of_decay: f32, peak_dur_ticks: u8) -> Self {
-        // TODO: this vec is never adjusted, so if the number of bars is
-        // ever increased during runtime, the program WILL panic
         let ticks = vec![0; len];
         Self {
             rate_of_decay,
@@ -139,6 +137,10 @@ impl ExperimentalFilter {
 
 impl Filter for ExperimentalFilter {
     fn apply(&mut self, input: &[f32], out: &mut [u32]) {
+        let len = input.len();
+        if self.ticks.len() != len {
+            self.ticks.resize(len, 0);
+        }
         for (i, e) in input.iter().enumerate() {
             let entry = *e as u32;
             let tick = self.ticks[i];
