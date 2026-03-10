@@ -2,7 +2,8 @@ use better_default::Default;
 use ratatui::style::Color;
 
 use super::{COLORS, Visualizer};
-use crate::filter::{Filter, normal::NormalFilter};
+use crate::filter::Filter;
+use crate::filter::cava::CavaFilter;
 use crate::spectrum::Spectrum;
 use crate::spectrum::average::AverageSpectrum;
 use crate::visualizer::Mode;
@@ -14,7 +15,7 @@ pub struct MonoVisualizer {
     pub color_index: usize,
     spectrum: AverageSpectrum,
     out: Vec<u32>,
-    #[default(Box::new(NormalFilter::default()))]
+    #[default(Box::new(CavaFilter::default()))]
     filter: Box<dyn Filter>,
     pub mode: Mode,
     pub direction: Direction,
@@ -48,6 +49,7 @@ impl MonoVisualizer {
         &self.out
     }
 
+    #[allow(dead_code)]
     #[must_use = "builder pattern blah blah"]
     pub fn filter(mut self, filter: Box<dyn Filter>) -> Self {
         self.filter = filter;

@@ -23,13 +23,15 @@ pub struct CavaFilter {
     gravity_mod: f32,
 }
 
-impl CavaFilter {
-    fn new(len: usize, noise_reduct: f32) -> Self {
-        let curr_peaks = vec![0.0; len];
-        let fall_vals = vec![0.0; len];
-        let prev_amps = vec![0.0; len];
-        let post_int_vals = vec![0.0; len];
+impl Default for CavaFilter {
+    fn default() -> Self {
+        let noise_reduct = DEFAULT_NOISE_REDUCT;
         let gravity_mod = ((60.0 / TICK_FPS as f32).powf(2.5) * 1.54 / noise_reduct).max(1.0);
+        let curr_peaks = Vec::default();
+        let fall_vals = Vec::default();
+        let prev_amps = Vec::default();
+        let post_int_vals = Vec::default();
+
         Self {
             curr_peaks,
             fall_vals,
@@ -39,10 +41,23 @@ impl CavaFilter {
             gravity_mod,
         }
     }
+}
 
-    pub fn from_len(len: usize) -> Self {
-        Self::new(len, DEFAULT_NOISE_REDUCT)
-    }
+impl CavaFilter {
+    // fn new(len: usize, noise_reduct: f32) -> Self {
+    //     let curr_peaks = vec![0.0; len];
+    //     let fall_vals = vec![0.0; len];
+    //     let prev_amps = vec![0.0; len];
+    //     let post_int_vals = vec![0.0; len];
+    //     Self {
+    //         curr_peaks,
+    //         fall_vals,
+    //         noise_reduct,
+    //         prev_amps,
+    //         post_int_vals,
+    //         ..Default::default()
+    //     }
+    // }
 
     pub fn resize(&mut self, len: usize) {
         self.curr_peaks.resize(len, 0.0);
@@ -55,6 +70,7 @@ impl CavaFilter {
 impl Filter for CavaFilter {
     fn apply(&mut self, input: &[f32], out: &mut [u32]) {
         let len = input.len();
+        // is there a better way of doing this?
         if self.curr_peaks.len() != len {
             self.resize(len)
         }
