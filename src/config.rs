@@ -38,7 +38,7 @@ pub(crate) struct Visualizer {
     pub style: VisualizerStyle,
     pub direction: Direction,
     pub orientation: Orientation,
-    #[default(36)]
+    #[default(48)]
     pub bars: usize,
     #[default(24.0)]
     pub scale: f32,
