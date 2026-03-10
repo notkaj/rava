@@ -6,7 +6,7 @@ use tokio::sync::mpsc::{self, Receiver, Sender};
 use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_interleaved_capturer};
 use crate::fft::Fft;
-use crate::spectrum::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, spectral::Spectral};
+use crate::spectrum::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, Spectrum};
 use crate::spectrum::{apply_hann_window, hann_multipliers};
 
 pub struct StereoSpectrum {
@@ -107,7 +107,7 @@ impl StereoSpectrum {
     }
 }
 
-impl Spectral for StereoSpectrum {
+impl Spectrum for StereoSpectrum {
     fn update(&mut self) {
         let Ok(left_transform) = self.left_rx.try_recv() else {
             // TODO: recover form this

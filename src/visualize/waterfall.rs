@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 use crate::{
-    spectrum::{average::AverageSpectrum, spectral::Spectral},
+    spectrum::{Spectrum, average::AverageSpectrum},
     visualize::{COLORS, DEFAULT_COLOR_INDEX, Mode, visual::Visual},
 };
 use bounded_vec_deque::BoundedVecDeque;

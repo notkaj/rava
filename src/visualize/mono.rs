@@ -2,8 +2,8 @@ use better_default::Default;
 use ratatui::style::Color;
 
 use crate::filter::{Filter, NormalFilter};
+use crate::spectrum::Spectrum;
 use crate::spectrum::average::AverageSpectrum;
-use crate::spectrum::spectral::Spectral;
 use crate::visualize::Mode;
 use crate::visualize::{COLORS, visual::Visual};
 use crate::visualize::{DEFAULT_COLOR_INDEX, Direction};

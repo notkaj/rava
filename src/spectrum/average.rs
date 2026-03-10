@@ -2,11 +2,11 @@ use std::time::Duration;
 
 use tokio::sync::mpsc::{self, Receiver, Sender};
 
+use super::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, Spectrum};
+use super::{apply_hann_window, hann_multipliers};
 use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_capturer};
 use crate::fft::Fft;
-use crate::spectrum::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, spectral::Spectral};
-use crate::spectrum::{apply_hann_window, hann_multipliers};
 
 pub struct AverageSpectrum {
     capturer: Box<dyn Capturer>,
@@ -72,7 +72,7 @@ impl AverageSpectrum {
     }
 }
 
-impl Spectral for AverageSpectrum {
+impl Spectrum for AverageSpectrum {
     fn update(&mut self) {
         let Ok(transform) = self.rx.try_recv() else {
             // TODO: recover from this

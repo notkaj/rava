@@ -1,7 +1,6 @@
 use std::f32::consts::PI;
 
 pub mod average;
-pub mod spectral;
 pub mod stereo;
 
 pub(super) const DEFAULT_RANGE_COUNT: usize = 36;
@@ -23,4 +22,15 @@ pub(crate) fn apply_hann_window(spectrum: &mut [f32], mul: &[f32]) {
     for (i, amp) in spectrum.iter_mut().enumerate() {
         *amp *= mul[i]
     }
+}
+
+pub trait Spectrum {
+    // fn init(&mut self);
+    fn update(&mut self);
+    fn add_range(&mut self);
+    fn remove_range(&mut self);
+    fn adjust_scale(&mut self, value: f32);
+    fn sample_rate(&self) -> usize;
+    fn channels(&self) -> usize;
+    fn max_amp(&self) -> Option<u32>;
 }
