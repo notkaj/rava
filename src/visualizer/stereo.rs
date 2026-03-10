@@ -49,6 +49,12 @@ impl StereoVisualizer {
         self.orientation = Orientation::Inverted;
         self
     }
+
+    #[must_use = "builder pattern"]
+    pub fn filter(mut self, filter: Box<dyn Filter>) -> Self {
+        self.filter = filter;
+        self
+    }
 }
 
 impl Visualizer for StereoVisualizer {

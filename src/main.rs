@@ -3,6 +3,7 @@ use std::io::Stdout;
 use crate::{
     app::App,
     config::{VisualizerStyle, config},
+    filter::normal::NormalFilter,
     visualizer::{
         Direction, Orientation, mono::MonoVisualizer, stereo::StereoVisualizer,
         waterfall::Waterfall,
@@ -113,7 +114,10 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
     // let quant = config.input.quant;
 
     if args.stereo || config.visualizer.style == VisualizerStyle::Stereo {
-        let stereo = StereoVisualizer::new(bars, direction, orientation);
+        let mut stereo = StereoVisualizer::new(bars, direction, orientation);
+        if args.normal {
+            stereo = stereo.filter(Box::new(NormalFilter::default()));
+        }
         return App::new(stereo).run(terminal).await;
     }
 
@@ -123,7 +127,11 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
         return App::new(waterfall).run(terminal).await;
     }
 
-    let mono = MonoVisualizer::new(bars, scale, direction);
+    let mut mono = MonoVisualizer::new(bars, scale, direction);
+    if args.normal {
+        mono = mono.filter(Box::new(NormalFilter::default()));
+    }
+
     App::new(mono).run(terminal).await
 }
 

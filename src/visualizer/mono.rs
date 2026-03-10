@@ -49,7 +49,6 @@ impl MonoVisualizer {
         &self.out
     }
 
-    #[allow(dead_code)]
     #[must_use = "builder pattern blah blah"]
     pub fn filter(mut self, filter: Box<dyn Filter>) -> Self {
         self.filter = filter;
