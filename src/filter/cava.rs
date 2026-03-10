@@ -10,7 +10,7 @@ const DEFAULT_FALL_VAL: f32 = 0.028;
  * its visual spectrum
  *
  * https://github.com/karlstav/cava
- * <karl@stravestrand.no>
+ * <karl@stavestrand.no>
  * /cavacore.c ~ lines 404 - 438
  */
 
