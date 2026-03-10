@@ -92,8 +92,8 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
         panic!("pick either vertical or horizontal")
     }
 
-    let direction = if args.vertical {
-        Direction::Vertical
+    let direction = if args.horizontal {
+        Direction::Horizontal
     } else {
         config.visualizer.direction.into()
     };
