@@ -1,8 +1,8 @@
 use crate::{
     ui::popup::Popup,
-    visualize::{
+    visualizer::{
         stereo::StereoVisualizer,
-        {Direction, Orientation, visual::Visual},
+        {Direction, Orientation, Visualizer},
     },
 };
 use ratatui::{

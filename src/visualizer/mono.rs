@@ -1,75 +1,74 @@
 use better_default::Default;
 use ratatui::style::Color;
 
-use crate::{
-    filter::{Filter, NormalFilter},
-    spectrum::{Spectrum, stereo::StereoSpectrum},
-    visualize::{COLORS, DEFAULT_COLOR_INDEX, Direction, Mode, Orientation, visual::Visual},
-};
+use super::{COLORS, Visualizer};
+use crate::filter::{Filter, NormalFilter};
+use crate::spectrum::Spectrum;
+use crate::spectrum::average::AverageSpectrum;
+use crate::visualizer::Mode;
+use crate::visualizer::{DEFAULT_COLOR_INDEX, Direction};
 
 #[derive(Default)]
-pub struct StereoVisualizer {
+pub struct MonoVisualizer {
     #[default(DEFAULT_COLOR_INDEX)]
     pub color_index: usize,
-    spectrum: StereoSpectrum,
-    pub left_out: Vec<u32>,
-    pub right_out: Vec<u32>,
+    spectrum: AverageSpectrum,
+    out: Vec<u32>,
     #[default(Box::new(NormalFilter::default()))]
     filter: Box<dyn Filter>,
     pub mode: Mode,
     pub direction: Direction,
-    pub orientation: Orientation,
 }
 
-impl StereoVisualizer {
-    pub fn new(bars: usize, direction: Direction, orientation: Orientation) -> Self {
-        let spectrum = StereoSpectrum::new(bars);
-        let left_out = vec![0; bars];
-        let right_out = vec![0; bars];
+// impl Default for MonoVisualizer {
+//     fn default() -> Self {
+//         let filter = Box::new(NormalFilter::default());
+//         Self::new(
+//             DEFAULT_COLOR_INDEX,
+//             filter,
+//             Default::default(),
+//             Default::default(),
+//         )
+//     }
+// }
+
+impl MonoVisualizer {
+    pub fn new(bars: usize, scale: f32, direction: Direction) -> Self {
+        let spectrum = AverageSpectrum::new(bars, scale);
+        let out = vec![0; bars];
         Self {
             spectrum,
-            left_out,
-            right_out,
+            out,
             direction,
-            orientation,
             ..Default::default()
         }
     }
 
-    #[allow(dead_code)]
-    #[must_use]
-    pub fn centered(mut self) -> Self {
-        self.orientation = Orientation::Centered;
-        self
+    pub fn output(&self) -> &[u32] {
+        &self.out
     }
 
-    #[allow(dead_code)]
-    #[must_use]
-    pub fn inverted(mut self) -> Self {
-        self.orientation = Orientation::Inverted;
+    #[must_use = "builder pattern blah blah"]
+    pub fn filter(mut self, filter: Box<dyn Filter>) -> Self {
+        self.filter = filter;
         self
     }
 }
 
-impl Visual for StereoVisualizer {
+impl Visualizer for MonoVisualizer {
     fn update(&mut self) {
         self.spectrum.update();
-        self.filter
-            .apply(&self.spectrum.left_amps, &mut self.left_out);
-        self.filter
-            .apply(&self.spectrum.right_amps, &mut self.right_out);
+        self.filter.apply(&self.spectrum.amps, &mut self.out);
     }
 
     fn add_bar(&mut self) {
         self.spectrum.add_range();
-        self.left_out.push(0);
-        self.right_out.push(0);
+        self.out.push(0);
     }
 
     fn remove_bar(&mut self) {
         self.spectrum.remove_range();
-        self.left_out.pop();
-        self.right_out.pop();
+        self.out.pop();
     }
 
     fn increment_scale(&mut self) {

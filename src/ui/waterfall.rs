@@ -12,7 +12,7 @@ use ratatui::{
 
 use crate::{
     ui::popup,
-    visualize::{visual::Visual, waterfall::Waterfall},
+    visualizer::{Visualizer, waterfall::Waterfall},
 };
 
 impl WidgetRef for Waterfall {

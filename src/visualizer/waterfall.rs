@@ -1,9 +1,7 @@
 use std::time::{Duration, Instant};
 
-use crate::{
-    spectrum::{Spectrum, average::AverageSpectrum},
-    visualize::{COLORS, DEFAULT_COLOR_INDEX, Mode, visual::Visual},
-};
+use super::{COLORS, DEFAULT_COLOR_INDEX, Mode, Visualizer};
+use crate::spectrum::{Spectrum, average::AverageSpectrum};
 use bounded_vec_deque::BoundedVecDeque;
 
 const DEFAULT_TICK_RATE: Duration = Duration::from_millis(100 / 3);
@@ -51,7 +49,7 @@ impl Waterfall {
     }
 }
 
-impl Visual for Waterfall {
+impl Visualizer for Waterfall {
     fn update(&mut self) {
         if self.last_tick.elapsed() < self.tick_rate {
             return;

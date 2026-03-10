@@ -1,5 +1,5 @@
 use crate::event::{AppEvent, Event, EventHandler};
-use crate::visualize::{Mode, visual::Visual};
+use crate::visualizer::{Mode, Visualizer};
 use ratatui::widgets::WidgetRef;
 use ratatui::{
     DefaultTerminal,
@@ -8,7 +8,7 @@ use ratatui::{
 
 /// Application.
 // #[derive(Debug)]
-pub struct App<T: Visual + WidgetRef> {
+pub struct App<T: Visualizer + WidgetRef> {
     /// Is the application running?
     pub running: bool,
     /// Event handler.
@@ -41,7 +41,7 @@ pub struct App<T: Visual + WidgetRef> {
 //         self.mode = mode;
 //     }
 // }
-impl<T: Visual + WidgetRef + Default> Default for App<T> {
+impl<T: Visualizer + WidgetRef + Default> Default for App<T> {
     fn default() -> Self {
         Self {
             running: true,
@@ -51,7 +51,7 @@ impl<T: Visual + WidgetRef + Default> Default for App<T> {
     }
 }
 
-impl<T: Visual + WidgetRef + Default> App<T> {
+impl<T: Visualizer + WidgetRef + Default> App<T> {
     /// Constructs a new instance of [`App`].
     pub fn new(vis: T) -> Self {
         Self {

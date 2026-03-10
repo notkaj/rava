@@ -1,8 +1,8 @@
 use crate::{
     ui::popup::Popup,
-    visualize::{
+    visualizer::{
         mono::MonoVisualizer,
-        {Direction, visual::Visual},
+        {Direction, Visualizer},
     },
 };
 use ratatui::{

@@ -4,7 +4,7 @@ use crate::{
     app::App,
     config::{VisualizerStyle, config},
     filter::CavaFilter,
-    visualize::{
+    visualizer::{
         Direction, Orientation, mono::MonoVisualizer, stereo::StereoVisualizer,
         waterfall::Waterfall,
     },
@@ -20,7 +20,7 @@ mod fft;
 mod filter;
 mod spectrum;
 mod ui;
-mod visualize;
+mod visualizer;
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {

@@ -2,7 +2,7 @@ use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
 
 use crate::{
     ui::popup::{colors::ColorPickPopup, input::InputPopup, keys::KeysPopup, stats::StatsPopup},
-    visualize::{COLORS, Mode, visual::Visual},
+    visualizer::{COLORS, Mode, Visualizer},
 };
 
 pub(super) mod colors;
@@ -16,7 +16,7 @@ pub const HORIZ_PERCENT: u16 = 20;
 pub struct Popup;
 
 impl Popup {
-    pub fn render<T: Visual>(vis: &T, mode: &Mode, area: Rect, buf: &mut Buffer) {
+    pub fn render<T: Visualizer>(vis: &T, mode: &Mode, area: Rect, buf: &mut Buffer) {
         let color = vis.color();
         match mode {
             Mode::Default => (),
