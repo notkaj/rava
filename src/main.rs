@@ -3,7 +3,7 @@ use std::io::Stdout;
 use crate::{
     app::App,
     config::{VisualizerStyle, config},
-    filter::CavaFilter,
+    filter::cava::CavaFilter,
     visualizer::{
         Direction, Orientation, mono::MonoVisualizer, stereo::StereoVisualizer,
         waterfall::Waterfall,

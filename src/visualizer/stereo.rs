@@ -3,7 +3,7 @@ use ratatui::style::Color;
 
 use super::{COLORS, DEFAULT_COLOR_INDEX, Direction, Mode, Orientation, Visualizer};
 use crate::{
-    filter::{Filter, NormalFilter},
+    filter::{Filter, normal::NormalFilter},
     spectrum::{Spectrum, stereo::StereoSpectrum},
 };
 

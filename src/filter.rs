@@ -4,9 +4,6 @@ pub mod normal;
 pub mod raw;
 pub mod smooth;
 
-pub use cava::CavaFilter;
-pub use normal::NormalFilter;
-
 pub trait Filter {
     fn apply(&mut self, input: &[f32], out: &mut [u32]);
 }

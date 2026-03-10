@@ -2,7 +2,7 @@ use better_default::Default;
 use ratatui::style::Color;
 
 use super::{COLORS, Visualizer};
-use crate::filter::{Filter, NormalFilter};
+use crate::filter::{Filter, normal::NormalFilter};
 use crate::spectrum::Spectrum;
 use crate::spectrum::average::AverageSpectrum;
 use crate::visualizer::Mode;
