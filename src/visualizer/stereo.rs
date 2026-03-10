@@ -3,7 +3,7 @@ use ratatui::style::Color;
 
 use super::{COLORS, DEFAULT_COLOR_INDEX, Direction, Mode, Orientation, Visualizer};
 use crate::{
-    filter::{Filter, normal::NormalFilter},
+    filter::{Filter, cava::CavaFilter},
     spectrum::{Spectrum, stereo::StereoSpectrum},
 };
 
@@ -14,7 +14,7 @@ pub struct StereoVisualizer {
     spectrum: StereoSpectrum,
     pub left_out: Vec<u32>,
     pub right_out: Vec<u32>,
-    #[default(Box::new(NormalFilter::default()))]
+    #[default(Box::new(CavaFilter::default()))]
     filter: Box<dyn Filter>,
     pub mode: Mode,
     pub direction: Direction,
