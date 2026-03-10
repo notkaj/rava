@@ -9,7 +9,7 @@ use crate::ui::popup::HORIZ_PERCENT;
 
 impl Widget for &ColorPickPopup {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let vertical = Layout::vertical([Constraint::Length(10)]).flex(Flex::Center);
+        let vertical = Layout::vertical([Constraint::Length(11)]).flex(Flex::Center);
         let horizontal =
             Layout::horizontal([Constraint::Percentage(HORIZ_PERCENT)]).flex(Flex::Center);
         let [area] = vertical.areas(area);

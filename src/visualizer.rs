@@ -15,15 +15,21 @@ pub enum Mode {
 }
 
 pub(super) const DEFAULT_COLOR_INDEX: usize = 5;
-pub const COLORS: [Color; 8] = [
+pub const COLORS: [Color; 13] = [
     Color::White,
     Color::Black,
     Color::Red,
     Color::Green,
     Color::Yellow,
+    Color::Cyan,
     Color::Blue,
     Color::Magenta,
     Color::Gray,
+    // these are temporary, but i want them here for now
+    Color::from_u32(0xb4befe), // Lavender
+    Color::from_u32(0xf5c2e7), // Pink
+    Color::from_u32(0xcba6f7), //Mauve
+    Color::from_u32(0x94e2d5), //Teal
 ];
 
 #[derive(Default)]
