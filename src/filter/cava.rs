@@ -3,6 +3,16 @@ use crate::event::TICK_FPS;
 use super::Filter;
 
 const DEFAULT_NOISE_REDUCT: f32 = 0.77;
+const DEFAULT_FALL_VAL: f32 = 0.028;
+
+/*
+ * This Filter is my attempt at mimicking the way cava smooths
+ * its visual spectrum
+ *
+ * https://github.com/karlstav/cava
+ * <karl@stravestrand.no>
+ * /cavacore.c ~ lines 404 - 438
+ */
 
 pub struct CavaFilter {
     curr_peaks: Vec<f32>,
@@ -55,7 +65,7 @@ impl Filter for CavaFilter {
             if amp < prev && self.noise_reduct > 0.1 {
                 res = self.curr_peaks[i] * (1.0 - (self.fall_vals[i].powi(2) * self.gravity_mod));
                 res = res.max(0.0);
-                self.fall_vals[i] -= 0.028;
+                self.fall_vals[i] -= DEFAULT_FALL_VAL;
             } else {
                 self.curr_peaks[i] = amp;
                 self.fall_vals[i] = 0.0;
