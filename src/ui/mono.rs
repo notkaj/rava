@@ -1,9 +1,6 @@
 use crate::{
     ui::popup::Popup,
-    visualizer::{
-        mono::MonoVisualizer,
-        {Direction, Visualizer},
-    },
+    visualizer::{Direction, Orientation, Visualizer, mono::MonoVisualizer},
 };
 use ratatui::{
     buffer::Buffer,
@@ -20,12 +17,20 @@ impl WidgetRef for MonoVisualizer {
         let width = area.width as u64;
         let height = area.height as u64;
 
-        let chart = match self.direction {
-            Direction::Vertical => {
+        let chart = match (self.direction, self.orientation) {
+            (Direction::Vertical, Orientation::Inverted) => {
+                let bar_width = width as u16 / (bars + 1);
+                vertical_barchart(self, bar_width, height).inverted()
+            }
+            (Direction::Horizontal, Orientation::Inverted) => {
+                let bar_width = height as u16 / (bars + 1);
+                horizontal_barchart(self, bar_width, width).inverted()
+            }
+            (Direction::Vertical, _) => {
                 let bar_width = width as u16 / (bars + 1);
                 vertical_barchart(self, bar_width, height)
             }
-            Direction::Horizontal => {
+            (Direction::Horizontal, _) => {
                 let bar_width = height as u16 / (bars + 1);
                 horizontal_barchart(self, bar_width, width)
             }

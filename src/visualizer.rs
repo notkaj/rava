@@ -32,7 +32,7 @@ pub const COLORS: [Color; 13] = [
     Color::from_u32(0x94e2d5), //Teal
 ];
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub enum Direction {
     #[default]
     Vertical,
@@ -48,7 +48,7 @@ impl From<Direction> for ratatui::layout::Direction {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub enum Orientation {
     #[default]
     Normal,

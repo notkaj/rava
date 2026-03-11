@@ -7,7 +7,7 @@ use crate::filter::cava::CavaFilter;
 use crate::spectrum::Spectrum;
 use crate::spectrum::average::AverageSpectrum;
 use crate::visualizer::Mode;
-use crate::visualizer::{DEFAULT_COLOR_INDEX, Direction};
+use crate::visualizer::{DEFAULT_COLOR_INDEX, Direction, Orientation};
 
 #[derive(Default)]
 pub struct MonoVisualizer {
@@ -19,6 +19,7 @@ pub struct MonoVisualizer {
     filter: Box<dyn Filter>,
     pub mode: Mode,
     pub direction: Direction,
+    pub orientation: Orientation,
 }
 
 // impl Default for MonoVisualizer {
