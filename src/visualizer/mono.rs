@@ -35,13 +35,14 @@ pub struct MonoVisualizer {
 // }
 
 impl MonoVisualizer {
-    pub fn new(bars: usize, scale: f32, direction: Direction) -> Self {
+    pub fn new(bars: usize, scale: f32, direction: Direction, orientation: Orientation) -> Self {
         let spectrum = AverageSpectrum::new(bars, scale);
         let out = vec![0; bars];
         Self {
             spectrum,
             out,
             direction,
+            orientation,
             ..Default::default()
         }
     }

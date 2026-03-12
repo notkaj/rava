@@ -127,7 +127,7 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
         return App::new(waterfall).run(terminal).await;
     }
 
-    let mut mono = MonoVisualizer::new(bars, scale, direction);
+    let mut mono = MonoVisualizer::new(bars, scale, direction, orientation);
     if args.normal {
         mono = mono.filter(Box::new(NormalFilter::default()));
     }
