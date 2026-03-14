@@ -4,7 +4,7 @@ use crate::{
 };
 use ratatui::{
     buffer::Buffer,
-    layout::Rect,
+    layout::{Constraint, Layout, Rect},
     style::{Color, Style},
     widgets::{Widget, WidgetRef},
 };
@@ -32,13 +32,17 @@ fn render_vert(vis: &MonoVisualizer, area: Rect, buf: &mut Buffer) {
     // bar_width + 1 = (width + 1)/bars
     // bar_width = ((width + 1)/bars) - 1
     let bar_width = ((width + 1) / bars) - 1;
+    let rem = width - (bar_width + 1) * bars - 1;
+
+    let [_, main] =
+        Layout::horizontal([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
 
     let chart = match vis.orientation {
         Orientation::Inverted => vertical_barchart(vis, bar_width, height).inverted(),
         _ => vertical_barchart(vis, bar_width, height),
     };
 
-    chart.render(area, buf);
+    chart.render(main, buf);
 }
 
 fn render_horiz(vis: &MonoVisualizer, area: Rect, buf: &mut Buffer) {
