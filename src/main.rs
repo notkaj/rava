@@ -128,6 +128,7 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
     }
 
     let mut mono = MonoVisualizer::new(bars, scale, direction, orientation);
+    mono.init();
     if args.normal {
         mono = mono.filter(Box::new(NormalFilter::default()));
     }

@@ -47,6 +47,10 @@ impl MonoVisualizer {
         }
     }
 
+    pub fn init(&mut self) {
+        self.spectrum.init();
+    }
+
     pub fn output(&self) -> &[u32] {
         &self.out
     }
