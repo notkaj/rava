@@ -8,7 +8,6 @@ pub(super) const RATIO: f32 = 0.13;
 pub(super) const OFFSET: usize = 0;
 pub(super) const DEFAULT_SCALE: f32 = 24.0;
 
-#[allow(dead_code)]
 pub(crate) fn hann_multipliers(size: usize) -> Vec<f32> {
     let mut res = vec![0.0; size];
     for (i, mul) in res.iter_mut().enumerate() {

@@ -24,16 +24,26 @@ pub struct StereoVisualizer {
 impl StereoVisualizer {
     pub fn new(bars: usize, direction: Direction, orientation: Orientation) -> Self {
         let spectrum = StereoSpectrum::new(bars);
+        let filter = Box::new(CavaFilter::default());
         let left_out = vec![0; bars];
         let right_out = vec![0; bars];
+        let color_index = DEFAULT_COLOR_INDEX;
+        let mode = Default::default();
+
         Self {
+            color_index,
             spectrum,
             left_out,
             right_out,
+            filter,
+            mode,
             direction,
             orientation,
-            ..Default::default()
         }
+    }
+
+    pub fn init(&mut self) {
+        self.spectrum.init();
     }
 
     #[allow(dead_code)]
