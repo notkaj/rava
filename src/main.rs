@@ -118,6 +118,7 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
         if args.normal {
             stereo = stereo.filter(Box::new(NormalFilter::default()));
         }
+        stereo.init();
         return App::new(stereo).run(terminal).await;
     }
 

@@ -15,10 +15,10 @@ pub struct StereoSpectrum {
     pub left_amps: Vec<f32>,
     pub right_amps: Vec<f32>,
     scale: f32, // should be moved out to Visualizer?
-    left_tx: Sender<Vec<f32>>,
-    left_rx: Receiver<Vec<f32>>,
-    right_tx: Sender<Vec<f32>>,
-    right_rx: Receiver<Vec<f32>>,
+    left_tx: Option<Sender<Vec<f32>>>,
+    left_rx: Option<Receiver<Vec<f32>>>,
+    right_tx: Option<Sender<Vec<f32>>>,
+    right_rx: Option<Receiver<Vec<f32>>>,
     pub sample_len: usize,
     multipliers: Vec<f32>,
 }
@@ -35,36 +35,23 @@ impl StereoSpectrum {
         let left_amps = vec![0.0; ranges];
         let right_amps = vec![0.0; ranges];
 
-        let (left_tx, left_rx_from_spectrum) = mpsc::channel(1);
-        let (left_tx_to_spectrum, left_rx) = mpsc::channel(1);
-        let (right_tx, right_rx_from_spectrum) = mpsc::channel(1);
-        let (right_tx_to_spectrum, right_rx) = mpsc::channel(1);
         let sample_len = DEFAULT_QUANT;
-        let _ = left_tx.try_send(vec![0.0; sample_len]);
-        let _ = right_tx.try_send(vec![0.0; sample_len]);
-
-        let multipliers = hann_multipliers(sample_len);
+        let multipliers = vec![0.0; sample_len];
 
         let scale = DEFAULT_SCALE;
-        let res = Self {
+        Self {
             capturer,
             ranges,
             left_amps,
             right_amps,
             scale,
-            left_tx,
-            left_rx,
-            right_tx,
-            right_rx,
+            left_tx: None,
+            left_rx: None,
+            right_tx: None,
+            right_rx: None,
             sample_len,
             multipliers,
-        };
-        res.init(
-            left_rx_from_spectrum,
-            left_tx_to_spectrum,
-            right_rx_from_spectrum,
-            right_tx_to_spectrum,
-        )
+        }
     }
 
     fn sample() -> (Vec<f32>, Vec<f32>) {
@@ -80,21 +67,31 @@ impl StereoSpectrum {
         (left, right)
     }
 
-    fn init(
-        self,
-        left_rx_from_spectrum: Receiver<Vec<f32>>,
-        left_tx_to_spectrum: Sender<Vec<f32>>,
-        right_rx_from_spectrum: Receiver<Vec<f32>>,
-        right_tx_to_spectrum: Sender<Vec<f32>>,
-    ) -> Self {
+    pub fn init(&mut self) {
         self.capturer
             .init()
             .expect("Error in Capturer Initialization");
+
         let mut sample_len = self.capturer.buffer_size();
         while sample_len == 0 {
             sample_len = self.capturer.buffer_size();
             std::thread::sleep(Duration::from_millis(100));
         }
+
+        self.multipliers = hann_multipliers(sample_len / 2);
+
+        let (left_tx, left_rx_from_spectrum) = mpsc::channel(1);
+        let (left_tx_to_spectrum, left_rx) = mpsc::channel(1);
+        let (right_tx, right_rx_from_spectrum) = mpsc::channel(1);
+        let (right_tx_to_spectrum, right_rx) = mpsc::channel(1);
+        let _ = left_tx.try_send(vec![0.0; sample_len / 2]);
+        let _ = right_tx.try_send(vec![0.0; sample_len / 2]);
+
+        self.left_tx = Some(left_tx);
+        self.left_rx = Some(left_rx);
+        self.right_tx = Some(right_tx);
+        self.right_rx = Some(right_rx);
+
         if self.capturer.channels() != 2 {
             panic!("Attempted stereo playback without 2 channels")
         }
@@ -103,18 +100,17 @@ impl StereoSpectrum {
         let right_fft = Fft::new(sample_len / 2, right_tx_to_spectrum, right_rx_from_spectrum);
         left_fft.init();
         right_fft.init();
-        self
     }
 }
 
 impl Spectrum for StereoSpectrum {
     fn update(&mut self) {
-        let Ok(left_transform) = self.left_rx.try_recv() else {
+        let Ok(left_transform) = self.left_rx.as_mut().unwrap().try_recv() else {
             // TODO: recover form this
             panic!("ui and fft out of sync");
         };
 
-        let Ok(right_transform) = self.right_rx.try_recv() else {
+        let Ok(right_transform) = self.right_rx.as_mut().unwrap().try_recv() else {
             panic!("ui and fft out of sync");
         };
 
@@ -123,23 +119,43 @@ impl Spectrum for StereoSpectrum {
 
         if left_sample.is_empty() {
             // maybe handle if this errors
-            let _ = self.left_tx.try_send(vec![0.0; transform_len]);
+            let _ = self
+                .left_tx
+                .as_ref()
+                .unwrap()
+                .try_send(vec![0.0; transform_len]);
             return;
         }
 
         if right_sample.is_empty() {
-            let _ = self.right_tx.try_send(vec![0.0; transform_len]);
+            let _ = self
+                .right_tx
+                .as_ref()
+                .unwrap()
+                .try_send(vec![0.0; transform_len]);
             return;
         }
 
         apply_hann_window(&mut left_sample, &self.multipliers);
         apply_hann_window(&mut right_sample, &self.multipliers);
 
-        if self.left_tx.try_send(left_sample).is_err() {
+        if self
+            .left_tx
+            .as_ref()
+            .unwrap()
+            .try_send(left_sample)
+            .is_err()
+        {
             panic!("fft reviecer dropped or full");
         }
 
-        if self.right_tx.try_send(right_sample).is_err() {
+        if self
+            .right_tx
+            .as_ref()
+            .unwrap()
+            .try_send(right_sample)
+            .is_err()
+        {
             panic!("fft receiver dropped or full");
         }
 
