@@ -143,8 +143,8 @@ impl Spectrum for StereoSpectrum {
             panic!("fft receiver dropped or full");
         }
 
-        let len = (transform_len as f32 * RATIO) as usize;
-        let range_len = len / self.ranges;
+        // let len = (transform_len as f32 * RATIO) as usize;
+        let range_len = self.range_len();
 
         for i in 0..self.ranges {
             let start = (i + OFFSET) * range_len;
@@ -194,5 +194,10 @@ impl Spectrum for StereoSpectrum {
         let left = self.left_amps.iter().map(|&f| f as u32).max();
         let right = self.right_amps.iter().map(|&f| f as u32).max();
         cmp::max(left, right)
+    }
+
+    fn range_len(&self) -> usize {
+        let len = (self.sample_len as f32 * RATIO) as usize;
+        len / self.ranges
     }
 }

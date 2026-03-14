@@ -33,4 +33,5 @@ pub trait Spectrum {
     fn sample_rate(&self) -> usize;
     fn channels(&self) -> usize;
     fn max_amp(&self) -> Option<u32>;
+    fn range_len(&self) -> usize;
 }

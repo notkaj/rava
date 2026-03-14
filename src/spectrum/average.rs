@@ -111,6 +111,10 @@ impl Spectrum for AverageSpectrum {
 
     fn add_range(&mut self) {
         self.ranges += 1;
+        if self.range_len() == 0 {
+            self.ranges -= 1;
+            return;
+        }
         self.amps = vec![0.0; self.ranges];
         // let len = (self.ranges - 1) * 2;
         // self.capturer = Capturer::new(len);
@@ -141,5 +145,10 @@ impl Spectrum for AverageSpectrum {
 
     fn max_amp(&self) -> Option<u32> {
         self.amps.iter().map(|&n| n as u32).max()
+    }
+
+    fn range_len(&self) -> usize {
+        let len = (self.sample_len as f32 * RATIO) as usize;
+        len / self.ranges
     }
 }
