@@ -47,6 +47,10 @@ impl Waterfall {
             ..Default::default()
         }
     }
+
+    pub fn init(&mut self) {
+        self.spectrum.init();
+    }
 }
 
 impl Visualizer for Waterfall {

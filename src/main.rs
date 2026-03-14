@@ -124,7 +124,8 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
 
     if args.waterfall || config.visualizer.style == VisualizerStyle::Waterfall {
         let curves = config.visualizer.curves;
-        let waterfall = Waterfall::new(curves, bars, scale);
+        let mut waterfall = Waterfall::new(curves, bars, scale);
+        waterfall.init();
         return App::new(waterfall).run(terminal).await;
     }
 
