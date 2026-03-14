@@ -32,8 +32,7 @@ impl AverageSpectrum {
         let amps = vec![0.0; ranges];
 
         let sample_len = DEFAULT_QUANT;
-
-        let multipliers = hann_multipliers(sample_len);
+        let multipliers = vec![0.0; sample_len / 2];
 
         Self {
             capturer,
@@ -58,6 +57,8 @@ impl AverageSpectrum {
             sample_len = self.capturer.buffer_size();
             std::thread::sleep(Duration::from_millis(100));
         }
+
+        self.multipliers = hann_multipliers(sample_len);
 
         let (tx, rx_from_spectrum) = mpsc::channel(1);
         let (tx_to_spectrum, rx) = mpsc::channel(1);
