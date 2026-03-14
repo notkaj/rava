@@ -35,7 +35,7 @@ fn render_horiz(vis: &StereoVisualizer, area: Rect, buf: &mut Buffer) {
     let width = area.width as u64;
     let height = area.height;
 
-    let bar_width = height / (bars * 2) - 1;
+    let bar_width = height / (bars * 2).saturating_sub(1);
     let rem = height - ((bar_width + 1) * bars * 2);
 
     let [_, main] =

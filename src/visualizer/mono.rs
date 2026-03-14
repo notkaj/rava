@@ -70,12 +70,12 @@ impl Visualizer for MonoVisualizer {
 
     fn add_bar(&mut self) {
         self.spectrum.add_range();
-        self.out.push(0);
+        self.out.resize(self.spectrum.ranges, 0);
     }
 
     fn remove_bar(&mut self) {
         self.spectrum.remove_range();
-        self.out.pop();
+        self.out.resize(self.spectrum.ranges, 0);
     }
 
     fn increment_scale(&mut self) {

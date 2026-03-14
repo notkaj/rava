@@ -31,8 +31,11 @@ fn render_vert(vis: &MonoVisualizer, area: Rect, buf: &mut Buffer) {
     // bars * (bar_width + 1) = width + 1
     // bar_width + 1 = (width + 1)/bars
     // bar_width = ((width + 1)/bars) - 1
-    let bar_width = ((width + 1) / bars) - 1;
-    let rem = width - (bar_width + 1) * bars - 1;
+    let bar_width = ((width + 1) / bars).saturating_sub(1);
+    if bar_width == 0 {
+        return;
+    }
+    let rem = width.saturating_sub(((bar_width + 1) * bars).saturating_sub(1));
 
     let [_, main] =
         Layout::horizontal([Constraint::Length(rem / 2 + 1), Constraint::Fill(1)]).areas(area);
@@ -51,13 +54,17 @@ fn render_horiz(vis: &MonoVisualizer, area: Rect, buf: &mut Buffer) {
     let height = area.height;
 
     let bar_width = ((height + 1) / bars) - 1;
+    let rem = height - (bar_width + 1) * bars - 1;
+
+    let [_, main] =
+        Layout::vertical([Constraint::Length(rem / 2 + 2), Constraint::Fill(1)]).areas(area);
 
     let chart = match vis.orientation {
         Orientation::Inverted => horizontal_barchart(vis, bar_width, width).inverted(),
         _ => horizontal_barchart(vis, bar_width, width),
     };
 
-    chart.render(area, buf);
+    chart.render(main, buf);
 }
 
 fn horizontal_barchart(vis: &MonoVisualizer, bar_width: u16, width: u64) -> BarChart<'static> {
