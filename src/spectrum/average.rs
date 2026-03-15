@@ -108,7 +108,7 @@ impl Spectrum for AverageSpectrum {
 
         let tx = match self.tx.as_ref() {
             Some(tx) => tx,
-            None => panic!("tx not initialized"),
+            None => panic!("sample count not be transferred: tx not initialized"),
         };
 
         let res = if sample.is_empty() {
