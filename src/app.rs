@@ -17,30 +17,6 @@ pub struct App<T: Visualizer + WidgetRef> {
     pub visualizer: T,
 }
 
-// pub trait Visualizer: Visual + WidgetRef {
-//     fn get_mode(&self) -> Mode;
-//     fn set_mode(&mut self, mode: Mode);
-// }
-//
-// impl Visualizer for MonoVisualizer {
-//     fn get_mode(&self) -> Mode {
-//         self.mode
-//     }
-//
-//     fn set_mode(&mut self, mode: Mode) {
-//         self.mode = mode;
-//     }
-// }
-//
-// impl Visualizer for StereoVisualizer {
-//     fn get_mode(&self) -> Mode {
-//         self.mode
-//     }
-//
-//     fn set_mode(&mut self, mode: Mode) {
-//         self.mode = mode;
-//     }
-// }
 impl<T: Visualizer + WidgetRef + Default> Default for App<T> {
     fn default() -> Self {
         Self {
