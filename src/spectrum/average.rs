@@ -53,6 +53,7 @@ impl AverageSpectrum {
 
         let mut sample_len = self.capturer.buffer_size();
         // TODO: this is stupid
+        // should get set to half of quant if there are 2 channels
         while sample_len == 0 {
             sample_len = self.capturer.buffer_size();
             std::thread::sleep(Duration::from_millis(100));
@@ -78,24 +79,54 @@ impl AverageSpectrum {
 
 impl Spectrum for AverageSpectrum {
     fn update(&mut self) {
-        let Ok(transform) = self.rx.as_mut().unwrap().try_recv() else {
-            // TODO: recover from this
-            panic!("ui and fft out of sync");
+        // let transform = self
+        //     .rx
+        //     .as_mut()
+        //     .unwrap()
+        //     .try_recv()
+        //     .expect("ui and fft out of sync");
+        let sample_len = DEFAULT_QUANT / 2;
+
+        // TODO: this recovers hopefully, but something more permanent must be done about the
+        // sample_len, if it were to suddenly change
+        let rx = match self.rx.as_mut() {
+            Some(rx) => rx,
+            None => panic!("transform count not be received: rx not initialized"),
         };
 
-        let transform_len = transform.len();
+        let transform = match rx.try_recv() {
+            Ok(t) => t,
+            Err(e) => match e {
+                mpsc::error::TryRecvError::Empty => vec![0.0; sample_len],
+                mpsc::error::TryRecvError::Disconnected => {
+                    panic!("transform could not be received: channel disconnected")
+                }
+            },
+        };
+
         let mut sample = AverageSpectrum::sample();
 
-        if sample.is_empty() {
-            // maybe handle if this errors
-            let _ = self.tx.as_ref().unwrap().try_send(vec![0.0; transform_len]);
-            return;
-        }
+        let tx = match self.tx.as_ref() {
+            Some(tx) => tx,
+            None => panic!("tx not initialized"),
+        };
 
-        apply_hann_window(&mut sample, &self.multipliers);
+        let res = if sample.is_empty() {
+            tx.try_send(vec![0.0; sample_len])
+        } else {
+            apply_hann_window(&mut sample, &self.multipliers);
+            tx.try_send(sample)
+        };
 
-        if self.tx.as_ref().unwrap().try_send(sample).is_err() {
-            panic!("fft reviecer dropped or full");
+        if let Err(e) = res {
+            match e {
+                mpsc::error::TrySendError::Full(_) => {
+                    panic!("sample could not be transferred: fft buffer is full")
+                }
+                mpsc::error::TrySendError::Closed(_) => {
+                    panic!("sample could not be transferred: fft rx has been closed")
+                }
+            }
         }
 
         // let len = (transform_len as f32 * RATIO) as usize;
