@@ -8,7 +8,10 @@ use ratatui::{
     style::{Color, Style},
     widgets::{Widget, WidgetRef},
 };
-use tui_barchart_ext::barchart::{Bar, BarChart};
+use tui_barchart_ext::{
+    bar_symbols::Set,
+    barchart::{Bar, BarChart},
+};
 
 impl WidgetRef for MonoVisualizer {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
