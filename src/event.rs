@@ -44,6 +44,7 @@ pub enum AppEvent {
     NextColor,
     PrevColor,
     ShowInput,
+    Warn(&'static str),
 }
 
 /// Terminal event handler.

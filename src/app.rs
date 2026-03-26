@@ -1,5 +1,6 @@
 use crate::event::{AppEvent, Event, EventHandler};
 use crate::visualizer::{Mode, Visualizer};
+use crate::warn::Warnings;
 use ratatui::widgets::WidgetRef;
 use ratatui::{
     DefaultTerminal,
@@ -15,6 +16,8 @@ pub struct App<T: Visualizer + WidgetRef> {
     pub events: EventHandler,
     /// Visualizer Widget
     pub visualizer: T,
+    /// Warnings to display
+    pub warnings: Warnings,
 }
 
 impl<T: Visualizer + WidgetRef + Default> Default for App<T> {
@@ -23,6 +26,7 @@ impl<T: Visualizer + WidgetRef + Default> Default for App<T> {
             running: true,
             events: EventHandler::new(),
             visualizer: Default::default(),
+            warnings: Default::default(),
         }
     }
 }
@@ -58,19 +62,15 @@ impl<T: Visualizer + WidgetRef + Default> App<T> {
                     AppEvent::IncrementScale => self.visualizer.increment_scale(),
                     AppEvent::DecrementScale => self.visualizer.decrement_scale(),
                     AppEvent::ShowStats => {
-                        // self.visualizer.mode = Mode::ShowStats;
                         self.visualizer.set_mode(Mode::ShowStats);
                     }
                     AppEvent::ShowKeys => {
-                        // self.visualizer.mode = Mode::ShowKeys;
                         self.visualizer.set_mode(Mode::ShowKeys);
                     }
                     AppEvent::ShowColors => {
-                        // self.visualizer.mode = Mode::ColorPick;
                         self.visualizer.set_mode(Mode::ColorPick);
                     }
                     AppEvent::ClosePopup => {
-                        // self.visualizer.mode = Mode::Default;
                         self.visualizer.set_mode(Mode::Default);
                     }
                     AppEvent::NextColor => {
@@ -80,8 +80,10 @@ impl<T: Visualizer + WidgetRef + Default> App<T> {
                         self.visualizer.prev_color();
                     }
                     AppEvent::ShowInput => {
-                        // self.visualizer.mode = Mode::ShowInput;
                         self.visualizer.set_mode(Mode::ShowInput);
+                    }
+                    AppEvent::Warn(text) => {
+                        self.warnings.push(text);
                     }
                 },
             }
@@ -121,6 +123,7 @@ impl<T: Visualizer + WidgetRef + Default> App<T> {
     /// needs to be updated at a fixed frame rate. E.g. polling a server, updating an animation.
     pub fn tick(&mut self) {
         self.visualizer.update();
+        self.warnings.update();
     }
 
     /// Set running to false to quit the application.

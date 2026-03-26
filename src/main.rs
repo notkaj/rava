@@ -21,6 +21,7 @@ mod filter;
 mod spectrum;
 mod ui;
 mod visualizer;
+mod warn;
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
