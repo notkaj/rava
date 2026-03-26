@@ -9,7 +9,7 @@ use ratatui::{
     widgets::{Widget, WidgetRef},
 };
 use tui_barchart_ext::{
-    bar_symbols::Set,
+    // bar_symbols::Set,
     barchart::{Bar, BarChart},
 };
 
