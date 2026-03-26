@@ -10,7 +10,7 @@ pub struct Warnings {
     #[default(Instant::now())]
     last_tick: Instant,
     #[default(Duration::from_millis(4000))]
-    ttl: Duration,
+    default_ttl: Duration,
 }
 
 impl Warnings {
@@ -18,7 +18,7 @@ impl Warnings {
         if self.warnings.is_empty() {
             return;
         }
-        if self.last_tick.elapsed() > self.ttl {
+        if self.last_tick.elapsed() > self.ttl() {
             self.warnings.pop_front();
             self.last_tick = Instant::now();
         }
@@ -27,5 +27,15 @@ impl Warnings {
     pub fn push(&mut self, text: &'static str) {
         self.warnings.push_back(text);
         self.last_tick = Instant::now();
+    }
+
+    fn ttl(&self) -> Duration {
+        if self.warnings.len() > 5 {
+            Duration::from_millis(500)
+        } else if self.warnings.len() > 3 {
+            Duration::from_millis(1000)
+        } else {
+            self.default_ttl
+        }
     }
 }
