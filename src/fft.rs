@@ -1,6 +1,9 @@
 use realfft::{RealFftPlanner, RealToComplex, num_complex::Complex};
 use std::sync::Arc;
-use tokio::sync::mpsc::{self, Receiver, Sender, error::TryRecvError};
+use tokio::sync::mpsc::{
+    Receiver, Sender,
+    error::{TryRecvError, TrySendError},
+};
 
 pub struct Fft {
     fft: Arc<dyn RealToComplex<f32> + 'static>,
@@ -74,10 +77,11 @@ pub fn exchange(
 
     if let Err(e) = tx_to_fft.try_send(sample) {
         match e {
-            mpsc::error::TrySendError::Full(_) => {
-                panic!("sample could not be transferred: fft buffer is full")
+            TrySendError::Full(_) => {
+                // should throw a warning, but the channels should eventually sync back up
+                // panic!("sample could not be transferred: fft buffer is full")
             }
-            mpsc::error::TrySendError::Closed(_) => {
+            TrySendError::Closed(_) => {
                 panic!("sample could not be transferred: fft rx has been closed")
             }
         }
