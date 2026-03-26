@@ -1,6 +1,6 @@
 use realfft::{RealFftPlanner, RealToComplex, num_complex::Complex};
 use std::sync::Arc;
-use tokio::sync::mpsc::{Receiver, Sender}; // For shared data if processing in another thread
+use tokio::sync::mpsc::{self, Receiver, Sender, error::TryRecvError};
 
 pub struct Fft {
     fft: Arc<dyn RealToComplex<f32> + 'static>,
@@ -53,4 +53,35 @@ impl Fft {
             }
         }
     }
+}
+
+pub fn exchange(
+    sample: Vec<f32>,
+    tx_to_fft: &Sender<Vec<f32>>,
+    rx_from_fft: &mut Receiver<Vec<f32>>,
+) -> Vec<f32> {
+    let sample_len = sample.len();
+
+    let transform = match rx_from_fft.try_recv() {
+        Ok(t) => t,
+        Err(e) => match e {
+            TryRecvError::Empty => vec![0.0; sample_len],
+            TryRecvError::Disconnected => {
+                panic!("transform could not be received: channel disconnected")
+            }
+        },
+    };
+
+    if let Err(e) = tx_to_fft.try_send(sample) {
+        match e {
+            mpsc::error::TrySendError::Full(_) => {
+                panic!("sample could not be transferred: fft buffer is full")
+            }
+            mpsc::error::TrySendError::Closed(_) => {
+                panic!("sample could not be transferred: fft rx has been closed")
+            }
+        }
+    }
+
+    transform
 }

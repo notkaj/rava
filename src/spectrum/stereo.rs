@@ -5,7 +5,7 @@ use tokio::sync::mpsc::{self, Receiver, Sender};
 
 use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_interleaved_capturer};
-use crate::fft::Fft;
+use crate::fft::{Fft, exchange};
 use crate::spectrum::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, Spectrum};
 use crate::spectrum::{apply_hann_window, hann_multipliers};
 
@@ -105,59 +105,35 @@ impl StereoSpectrum {
 
 impl Spectrum for StereoSpectrum {
     fn update(&mut self) {
-        let Ok(left_transform) = self.left_rx.as_mut().unwrap().try_recv() else {
-            // TODO: recover form this
-            panic!("ui and fft out of sync");
-        };
+        let sample_len = DEFAULT_QUANT / 2;
 
-        let Ok(right_transform) = self.right_rx.as_mut().unwrap().try_recv() else {
-            panic!("ui and fft out of sync");
-        };
-
-        let transform_len = left_transform.len();
         let (mut left_sample, mut right_sample) = StereoSpectrum::sample();
 
-        if left_sample.is_empty() {
-            // maybe handle if this errors
-            let _ = self
-                .left_tx
-                .as_ref()
-                .unwrap()
-                .try_send(vec![0.0; transform_len]);
-            return;
-        }
+        let (left_tx, right_tx) = match (self.left_tx.as_ref(), self.right_tx.as_ref()) {
+            (Some(ltx), Some(rtx)) => (ltx, rtx),
+            _ => panic!("samples count not be transferred: tx not initialized"),
+        };
 
-        if right_sample.is_empty() {
-            let _ = self
-                .right_tx
-                .as_ref()
-                .unwrap()
-                .try_send(vec![0.0; transform_len]);
-            return;
-        }
+        let (left_rx, right_rx) = match (self.right_rx.as_mut(), self.left_rx.as_mut()) {
+            (Some(lrx), Some(rrx)) => (lrx, rrx),
+            _ => panic!("transform could not be received: rx not initialized"),
+        };
 
-        apply_hann_window(&mut left_sample, &self.multipliers);
-        apply_hann_window(&mut right_sample, &self.multipliers);
+        let left_transform = if left_sample.is_empty() {
+            let fake = vec![0.0; sample_len];
+            exchange(fake, left_tx, left_rx)
+        } else {
+            apply_hann_window(&mut left_sample, &self.multipliers);
+            exchange(left_sample, left_tx, left_rx)
+        };
 
-        if self
-            .left_tx
-            .as_ref()
-            .unwrap()
-            .try_send(left_sample)
-            .is_err()
-        {
-            panic!("fft reviecer dropped or full");
-        }
-
-        if self
-            .right_tx
-            .as_ref()
-            .unwrap()
-            .try_send(right_sample)
-            .is_err()
-        {
-            panic!("fft receiver dropped or full");
-        }
+        let right_transform = if right_sample.is_empty() {
+            let fake = vec![0.0; sample_len];
+            exchange(fake, right_tx, right_rx)
+        } else {
+            apply_hann_window(&mut right_sample, &self.multipliers);
+            exchange(right_sample, right_tx, right_rx)
+        };
 
         // let len = (transform_len as f32 * RATIO) as usize;
         let range_len = self.range_len();

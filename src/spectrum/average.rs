@@ -6,7 +6,7 @@ use super::{DEFAULT_RANGE_COUNT, DEFAULT_SCALE, OFFSET, RATIO, Spectrum};
 use super::{apply_hann_window, hann_multipliers};
 use crate::capture::DEFAULT_QUANT;
 use crate::capture::capturer::{Capturer, capture, default_capturer};
-use crate::fft::Fft;
+use crate::fft::{Fft, exchange};
 
 pub struct AverageSpectrum {
     capturer: Box<dyn Capturer>,
@@ -79,12 +79,6 @@ impl AverageSpectrum {
 
 impl Spectrum for AverageSpectrum {
     fn update(&mut self) {
-        // let transform = self
-        //     .rx
-        //     .as_mut()
-        //     .unwrap()
-        //     .try_recv()
-        //     .expect("ui and fft out of sync");
         let sample_len = DEFAULT_QUANT / 2;
 
         // TODO: this recovers hopefully, but something more permanent must be done about the
@@ -94,16 +88,6 @@ impl Spectrum for AverageSpectrum {
             None => panic!("transform count not be received: rx not initialized"),
         };
 
-        let transform = match rx.try_recv() {
-            Ok(t) => t,
-            Err(e) => match e {
-                mpsc::error::TryRecvError::Empty => vec![0.0; sample_len],
-                mpsc::error::TryRecvError::Disconnected => {
-                    panic!("transform could not be received: channel disconnected")
-                }
-            },
-        };
-
         let mut sample = AverageSpectrum::sample();
 
         let tx = match self.tx.as_ref() {
@@ -111,25 +95,14 @@ impl Spectrum for AverageSpectrum {
             None => panic!("sample count not be transferred: tx not initialized"),
         };
 
-        let res = if sample.is_empty() {
-            tx.try_send(vec![0.0; sample_len])
+        let transform = if sample.is_empty() {
+            let fake = vec![0.0; sample_len];
+            exchange(fake, tx, rx)
         } else {
             apply_hann_window(&mut sample, &self.multipliers);
-            tx.try_send(sample)
+            exchange(sample, tx, rx)
         };
 
-        if let Err(e) = res {
-            match e {
-                mpsc::error::TrySendError::Full(_) => {
-                    panic!("sample could not be transferred: fft buffer is full")
-                }
-                mpsc::error::TrySendError::Closed(_) => {
-                    panic!("sample could not be transferred: fft rx has been closed")
-                }
-            }
-        }
-
-        // let len = (transform_len as f32 * RATIO) as usize;
         let range_len = self.range_len();
 
         for i in 0..self.ranges {
