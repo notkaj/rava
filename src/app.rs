@@ -1,6 +1,6 @@
 use crate::event::{AppEvent, Event, EventHandler};
 use crate::visualizer::{Mode, Visualizer};
-use crate::warn::Warnings;
+use crate::warn;
 use ratatui::widgets::WidgetRef;
 use ratatui::{
     DefaultTerminal,
@@ -16,8 +16,6 @@ pub struct App<T: Visualizer + WidgetRef> {
     pub events: EventHandler,
     /// Visualizer Widget
     pub visualizer: T,
-    /// Warnings to display
-    pub warnings: Warnings,
 }
 
 impl<T: Visualizer + WidgetRef + Default> Default for App<T> {
@@ -26,7 +24,6 @@ impl<T: Visualizer + WidgetRef + Default> Default for App<T> {
             running: true,
             events: EventHandler::new(),
             visualizer: Default::default(),
-            warnings: Default::default(),
         }
     }
 }
@@ -82,9 +79,6 @@ impl<T: Visualizer + WidgetRef + Default> App<T> {
                     AppEvent::ShowInput => {
                         self.visualizer.set_mode(Mode::ShowInput);
                     }
-                    AppEvent::Warn(text) => {
-                        self.warnings.push(text);
-                    }
                 },
             }
         }
@@ -123,7 +117,9 @@ impl<T: Visualizer + WidgetRef + Default> App<T> {
     /// needs to be updated at a fixed frame rate. E.g. polling a server, updating an animation.
     pub fn tick(&mut self) {
         self.visualizer.update();
-        self.warnings.update();
+        if warn::has_warnings() {
+            warn::update();
+        }
     }
 
     /// Set running to false to quit the application.

@@ -5,6 +5,8 @@ use tokio::sync::mpsc::{
     error::{TryRecvError, TrySendError},
 };
 
+use crate::warn;
+
 pub struct Fft {
     fft: Arc<dyn RealToComplex<f32> + 'static>,
     tx: Sender<Vec<f32>>,
@@ -78,6 +80,7 @@ pub fn exchange(
     if let Err(e) = tx_to_fft.try_send(sample) {
         match e {
             TrySendError::Full(_) => {
+                warn::warn("fft buffer full")
                 // should throw a warning, but the channels should eventually sync back up
                 // panic!("sample could not be transferred: fft buffer is full")
             }
