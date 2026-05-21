@@ -80,7 +80,7 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
         panic!("pick either stereo, waterfall, mono, or none of them")
     }
 
-    if [args.centered, args.normal, args.inverted]
+    if [args.centered, args.inverted]
         .into_iter()
         .filter(|&p| p)
         .count()
