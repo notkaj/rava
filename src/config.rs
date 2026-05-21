@@ -46,6 +46,12 @@ pub(crate) struct Visualizer {
     // pub color: String,
     #[default(30)]
     pub curves: usize,
+    pub vertical_margins: u16,
+    pub horizontal_margins: u16,
+    pub top_margin: u16,
+    pub bottom_margin: u16,
+    pub right_margin: u16,
+    pub left_margin: u16,
 }
 
 #[derive(Default, Debug, Deserialize, PartialEq)]

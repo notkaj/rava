@@ -15,6 +15,11 @@ pub struct App<T: Visualizer + WidgetRef> {
     pub events: EventHandler,
     /// Visualizer Widget
     pub visualizer: T,
+    /// Margins
+    pub top_margin: u16,
+    pub bottom_margin: u16,
+    pub right_margin: u16,
+    pub left_margin: u16,
 }
 
 impl<T: Visualizer + WidgetRef + Default> Default for App<T> {
@@ -23,6 +28,10 @@ impl<T: Visualizer + WidgetRef + Default> Default for App<T> {
             running: true,
             events: EventHandler::new(),
             visualizer: Default::default(),
+            top_margin: 0,
+            bottom_margin: 0,
+            right_margin: 0,
+            left_margin: 0,
         }
     }
 }
@@ -126,6 +135,15 @@ impl<T: Visualizer + WidgetRef + Default> App<T> {
     /// Set running to false to quit the application.
     pub fn quit(&mut self) {
         self.running = false;
+    }
+
+    #[must_use = "builder pattern blah blah"]
+    pub fn margins(mut self, top: u16, bottom: u16, left: u16, right: u16) -> Self {
+        self.top_margin = top;
+        self.bottom_margin = bottom;
+        self.left_margin = left;
+        self.right_margin = right;
+        self
     }
 
     // pub fn set_vis(&mut self, vis: Box<dyn Visualizer>) {

@@ -98,20 +98,43 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
     // let rate = config.input.rate;
     // let quant = config.input.quant;
 
+    let mut top_margin = config.visualizer.vertical_margins;
+    let mut bottom_margin = config.visualizer.vertical_margins;
+    let mut left_margin = config.visualizer.horizontal_margins;
+    let mut right_margin = config.visualizer.horizontal_margins;
+    if config.visualizer.top_margin > 0 {
+        top_margin = config.visualizer.top_margin;
+    }
+    if config.visualizer.bottom_margin > 0 {
+        bottom_margin = config.visualizer.bottom_margin;
+    }
+    if config.visualizer.left_margin > 0 {
+        left_margin = config.visualizer.left_margin;
+    }
+    if config.visualizer.right_margin > 0 {
+        right_margin = config.visualizer.right_margin;
+    }
+
     if args.stereo || config.visualizer.style == VisualizerStyle::Stereo {
         let mut stereo = StereoVisualizer::new(bars, direction, orientation);
         if args.normal {
             stereo = stereo.filter(Box::new(NormalFilter::default()));
         }
         stereo.init();
-        return App::new(stereo).run(terminal).await;
+        return App::new(stereo)
+            .margins(top_margin, bottom_margin, left_margin, right_margin)
+            .run(terminal)
+            .await;
     }
 
     if args.waterfall || config.visualizer.style == VisualizerStyle::Waterfall {
         let curves = config.visualizer.curves;
         let mut waterfall = Waterfall::new(curves, bars, scale);
         waterfall.init();
-        return App::new(waterfall).run(terminal).await;
+        return App::new(waterfall)
+            .margins(top_margin, bottom_margin, left_margin, right_margin)
+            .run(terminal)
+            .await;
     }
 
     let mut mono = MonoVisualizer::new(bars, scale, direction, orientation);
@@ -120,7 +143,10 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
         mono = mono.filter(Box::new(NormalFilter::default()));
     }
 
-    App::new(mono).run(terminal).await
+    App::new(mono)
+        .margins(top_margin, bottom_margin, left_margin, right_margin)
+        .run(terminal)
+        .await
 }
 
 impl From<config::Direction> for Direction {
