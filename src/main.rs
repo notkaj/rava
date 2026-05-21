@@ -27,21 +27,6 @@ async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     let terminal = ratatui::init();
     let result = factory(terminal).await;
-    // match (args.stereo, args.centered, args.inverted, args.waterfall) {
-    //     (false, false, false, true) => App::new(Waterfall::default()).run(terminal).await,
-    //     (true, true, _, false) => {
-    //         App::new(StereoVisualizer::default().centered())
-    //             .run(terminal)
-    //             .await
-    //     }
-    //     (true, _, true, false) => {
-    //         App::new(StereoVisualizer::default().inverted())
-    //             .run(terminal)
-    //             .await
-    //     }
-    //     (true, _, _, false) => App::new(StereoVisualizer::default()).run(terminal).await,
-    //     (_, _, _, _) => App::new(MonoVisualizer::default()).run(terminal).await,
-    // };
     ratatui::restore();
     result
 }
