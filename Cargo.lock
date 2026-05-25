@@ -2170,9 +2170,9 @@ dependencies = [
 
 [[package]]
 name = "tui-barchart-ext"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c57dfbe11a4c5620b08ce8ea95ac25e41d42be4bcf28b6475990d93b3166f0d9"
+checksum = "5f27349a1774d78a8216b7938e3198444921640fca2befec7d86c7cf05f907d4"
 dependencies = [
  "ratatui-core",
  "ratatui-widgets",
