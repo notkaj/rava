@@ -11,20 +11,18 @@ use crate::{
 impl WidgetRef for RawMonoVisualizer {
     fn render_ref(&self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer) {
         let amps = self.output();
-        let height = f64::from(area.height);
-        let mid = height / 2.;
 
         let canvas = Canvas::default()
             .x_bounds([0., (amps.len() - 1) as f64])
-            .y_bounds([f64::from(area.top()), f64::from(area.bottom())])
+            .y_bounds([-20., 20.])
             .paint(|c| {
                 let mut j = 0.;
                 for points in amps.windows(2) {
                     c.draw(&Line {
                         x1: j,
-                        y1: mid + points[0],
+                        y1: points[0],
                         x2: j + 1.,
-                        y2: mid + points[1],
+                        y2: points[1],
                         color: self.color(),
                     });
                     j += 1.;

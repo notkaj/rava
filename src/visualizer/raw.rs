@@ -1,7 +1,11 @@
+use std::cmp::{max, min};
+
 use crate::{
     capture::capturer::{Capturer, capture, default_capturer},
     visualizer::{COLORS, Mode, Visualizer},
 };
+
+const ZERO_CROSSING_TRIGGER: bool = false;
 
 pub struct RawMonoVisualizer {
     capturer: Box<dyn Capturer>,
@@ -43,20 +47,41 @@ impl RawMonoVisualizer {
 
 impl Visualizer for RawMonoVisualizer {
     fn update(&mut self) {
-        let amps = capture();
+        let result = capture();
 
-        if let Ok(a) = amps {
-            let n = a.len();
-            let ranges = self.out.len();
-            let range_len = n / ranges;
+        let Ok(amps) = result else {
+            return;
+        };
 
-            for i in 0..ranges {
-                let start = i * range_len;
-                let end = start + range_len;
-                let sum = a[start..end].iter().sum::<f32>();
-                let avg = sum / range_len as f32;
-                self.out[i] = f64::from(avg * self.scale);
+        let content = if ZERO_CROSSING_TRIGGER {
+            let mut trigger_index = 0;
+            for i in 0..amps.len().saturating_sub(1) {
+                if amps[i] < 0. && amps[i + 1] >= 0. {
+                    trigger_index = i;
+                    break;
+                }
             }
+
+            &amps[trigger_index..]
+        } else {
+            &amps[..]
+        };
+        // find zero-crossing
+        let n = content.len();
+
+        let ranges = self.out.len();
+        let range_len = max(1, n / ranges);
+
+        for i in 0..ranges {
+            let start = i * range_len;
+            let end = min(n, start + range_len);
+            if start >= n {
+                break;
+            }
+            let sum = content[start..end].iter().sum::<f32>();
+            let len = (end - start) as f32;
+            let avg = if len > 0. { sum / len } else { 0. };
+            self.out[i] = f64::from(avg * self.scale);
         }
     }
 
