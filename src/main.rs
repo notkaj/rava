@@ -5,8 +5,8 @@ use crate::{
     config::{VisualizerStyle, config},
     filter::normal::NormalFilter,
     visualizer::{
-        Direction, Orientation, mono::MonoVisualizer, stereo::StereoVisualizer,
-        waterfall::Waterfall,
+        Direction, Orientation, mono::MonoVisualizer, raw::RawMonoVisualizer,
+        stereo::StereoVisualizer, waterfall::Waterfall,
     },
 };
 use clap::Parser;
@@ -49,12 +49,20 @@ struct Args {
     vertical: bool,
     #[arg(short = 'H', long)]
     horizontal: bool,
+    #[arg(short, long)]
+    raw: bool,
 }
 
 // i hate this function
 async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Result<()> {
     let config = config();
     let args = Args::parse();
+
+    if args.raw {
+        let mut vis = RawMonoVisualizer::new(64);
+        vis.init();
+        return App::new(vis).run(terminal).await;
+    }
 
     if [args.stereo, args.waterfall, args.mono]
         .into_iter()

@@ -3,71 +3,79 @@ use crate::{
     visualizer::{COLORS, Mode, Visualizer},
 };
 
-pub struct RawMono {
+pub struct RawMonoVisualizer {
     capturer: Box<dyn Capturer>,
-    out: Vec<u32>,
+    out: Vec<f64>,
     pub mode: Mode,
     pub color_index: usize,
-    pub scale: usize,
+    pub scale: f32,
 }
 
-impl Default for RawMono {
+impl Default for RawMonoVisualizer {
     fn default() -> Self {
-        RawMono {
+        RawMonoVisualizer {
             capturer: default_capturer(),
             out: Vec::new(),
             mode: Default::default(),
             color_index: Default::default(),
-            scale: 1,
+            scale: 10.,
         }
     }
 }
 
-impl RawMono {
-    fn new(points: usize) -> Self {
-        let out = vec![0; points];
-        RawMono {
+impl RawMonoVisualizer {
+    pub fn new(points: usize) -> Self {
+        let out = vec![0.; points];
+        RawMonoVisualizer {
             out,
             ..Default::default()
         }
     }
 
-    fn init(&mut self) {
+    pub fn init(&mut self) {
         self.capturer.init().expect("Error initializing Capturer");
     }
 
-    pub fn output(&self) -> &[u32] {
+    pub fn output(&self) -> &[f64] {
         &self.out
     }
 }
 
-impl Visualizer for RawMono {
+impl Visualizer for RawMonoVisualizer {
     fn update(&mut self) {
         let amps = capture();
 
         if let Ok(a) = amps {
-            for (i, e) in a.iter().enumerate() {
-                self.out[i] = *e as u32;
+            let n = a.len();
+            let ranges = self.out.len();
+            let range_len = n / ranges;
+
+            for i in 0..ranges {
+                let start = i * range_len;
+                let end = start + range_len;
+                let sum = a[start..end].iter().sum::<f32>();
+                let avg = sum / range_len as f32;
+                self.out[i] = f64::from(avg * self.scale);
             }
         }
     }
 
     fn add_bar(&mut self) {
         let len = self.out.len() + 1;
-        self.out = vec![0; len];
+        self.out = vec![0.; len];
     }
 
     fn remove_bar(&mut self) {
         let len = self.out.len().saturating_sub(1);
-        self.out = vec![0; len];
+        self.out = vec![0.; len];
     }
 
     fn increment_scale(&mut self) {
-        self.scale += 1;
+        self.scale += 1.;
     }
 
     fn decrement_scale(&mut self) {
-        self.scale -= 1;
+        self.scale -= 1.;
     }
 
     fn color(&self) -> ratatui::prelude::Color {
@@ -102,7 +110,12 @@ impl Visualizer for RawMono {
     }
 
     fn input_max(&self) -> u32 {
-        self.out.iter().copied().max().unwrap_or_default()
+        // self.out.iter().copied().max().unwrap_or_default()
+        self.out
+            .iter()
+            .copied()
+            .reduce(f64::max)
+            .unwrap_or_default() as u32
     }
 
     fn color_index(&self) -> usize {
