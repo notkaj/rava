@@ -1,6 +1,7 @@
 use ratatui::style::Color;
 
 pub mod mono;
+pub mod raw;
 pub mod stereo;
 pub mod waterfall;
 
