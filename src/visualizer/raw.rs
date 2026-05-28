@@ -5,7 +5,9 @@ use crate::{
     visualizer::{COLORS, Mode, Visualizer},
 };
 
-const ZERO_CROSSING_TRIGGER: bool = false;
+const CROSSING_TRIGGER: bool = true;
+const HORIZONTAL_TRIGGER_POSITION: f32 = 0.5;
+const TRIGGER_LEVEL: f32 = 0.;
 
 pub struct RawMonoVisualizer {
     capturer: Box<dyn Capturer>,
@@ -43,6 +45,26 @@ impl RawMonoVisualizer {
     pub fn output(&self) -> &[f64] {
         &self.out
     }
+
+    fn trigger(sample: &[f32], trigger_level: f32, htp: f32) -> Vec<f32> {
+        let n = sample.len();
+        let target_index = (n as f32 * htp) as usize;
+        let mut trigger_index = target_index;
+        for i in target_index..n.saturating_sub(1) {
+            if sample[i] < trigger_level && sample[i + 1] >= trigger_level {
+                trigger_index = i;
+                break;
+            }
+        }
+
+        let delta_index = trigger_index - target_index;
+
+        let mut res = vec![0.; n];
+        for i in 0..n - delta_index {
+            res[i] = sample[i + delta_index];
+        }
+        res
+    }
 }
 
 impl Visualizer for RawMonoVisualizer {
@@ -53,18 +75,10 @@ impl Visualizer for RawMonoVisualizer {
             return;
         };
 
-        let content = if ZERO_CROSSING_TRIGGER {
-            let mut trigger_index = 0;
-            for i in 0..amps.len().saturating_sub(1) {
-                if amps[i] < 0. && amps[i + 1] >= 0. {
-                    trigger_index = i;
-                    break;
-                }
-            }
-
-            &amps[trigger_index..]
+        let content = if CROSSING_TRIGGER {
+            &RawMonoVisualizer::trigger(&amps, TRIGGER_LEVEL, HORIZONTAL_TRIGGER_POSITION)
         } else {
-            &amps[..]
+            &amps
         };
         // find zero-crossing
         let n = content.len();
