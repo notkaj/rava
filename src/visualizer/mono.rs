@@ -22,18 +22,6 @@ pub struct MonoVisualizer {
     pub orientation: Orientation,
 }
 
-// impl Default for MonoVisualizer {
-//     fn default() -> Self {
-//         let filter = Box::new(NormalFilter::default());
-//         Self::new(
-//             DEFAULT_COLOR_INDEX,
-//             filter,
-//             Default::default(),
-//             Default::default(),
-//         )
-//     }
-// }
-
 impl MonoVisualizer {
     pub fn new(bars: usize, scale: f32, direction: Direction, orientation: Orientation) -> Self {
         let spectrum = AverageSpectrum::new(bars, scale);
