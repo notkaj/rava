@@ -5,7 +5,6 @@ use crate::{
     visualizer::{COLORS, Mode, Visualizer},
 };
 
-const CROSSING_TRIGGER: bool = true;
 const HORIZONTAL_TRIGGER_POSITION: f32 = 0.5;
 const TRIGGER_LEVEL: f32 = 0.;
 
