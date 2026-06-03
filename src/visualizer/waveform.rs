@@ -5,8 +5,8 @@ use crate::{
     visualizer::{COLORS, Mode, Visualizer},
 };
 
-const HORIZONTAL_TRIGGER_POSITION: f32 = 0.5;
-const TRIGGER_LEVEL: f32 = 0.;
+const DEFAULT_HORIZONTAL_TRIGGER_POSITION: f32 = 0.5;
+const DEFAULT_TRIGGER_LEVEL: f32 = 0.;
 
 pub struct MonoVisualizer {
     capturer: Box<dyn Capturer>,
@@ -25,7 +25,10 @@ impl Default for MonoVisualizer {
             mode: Default::default(),
             color_index: Default::default(),
             scale: 10.,
-            trigger: Some(Trigger::new(HORIZONTAL_TRIGGER_POSITION, TRIGGER_LEVEL)),
+            trigger: Some(Trigger::new(
+                DEFAULT_HORIZONTAL_TRIGGER_POSITION,
+                DEFAULT_TRIGGER_LEVEL,
+            )),
         }
     }
 }
