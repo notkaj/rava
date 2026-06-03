@@ -5,8 +5,8 @@ use crate::{
     config::{VisualizerStyle, config},
     filter::normal::NormalFilter,
     visualizer::{
-        Direction, Orientation, mono::MonoVisualizer, raw::RawMonoVisualizer,
-        stereo::StereoVisualizer, waterfall::Waterfall,
+        Direction, Orientation, mono::MonoVisualizer, stereo::StereoVisualizer,
+        waterfall::Waterfall, waveform,
     },
 };
 use clap::Parser;
@@ -59,7 +59,7 @@ async fn factory(terminal: Terminal<CrosstermBackend<Stdout>>) -> color_eyre::Re
     let args = Args::parse();
 
     if args.raw {
-        let mut vis = RawMonoVisualizer::new(64);
+        let mut vis = waveform::MonoVisualizer::new(128);
         vis.init();
         return App::new(vis).run(terminal).await;
     }

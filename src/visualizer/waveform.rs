@@ -9,7 +9,7 @@ const CROSSING_TRIGGER: bool = true;
 const HORIZONTAL_TRIGGER_POSITION: f32 = 0.5;
 const TRIGGER_LEVEL: f32 = 0.;
 
-pub struct RawMonoVisualizer {
+pub struct MonoVisualizer {
     capturer: Box<dyn Capturer>,
     out: Vec<f64>,
     pub mode: Mode,
@@ -17,9 +17,9 @@ pub struct RawMonoVisualizer {
     pub scale: f32,
 }
 
-impl Default for RawMonoVisualizer {
+impl Default for MonoVisualizer {
     fn default() -> Self {
-        RawMonoVisualizer {
+        MonoVisualizer {
             capturer: default_capturer(),
             out: Vec::new(),
             mode: Default::default(),
@@ -29,10 +29,10 @@ impl Default for RawMonoVisualizer {
     }
 }
 
-impl RawMonoVisualizer {
+impl MonoVisualizer {
     pub fn new(points: usize) -> Self {
         let out = vec![0.; points];
-        RawMonoVisualizer {
+        MonoVisualizer {
             out,
             ..Default::default()
         }
@@ -67,7 +67,7 @@ impl RawMonoVisualizer {
     }
 }
 
-impl Visualizer for RawMonoVisualizer {
+impl Visualizer for MonoVisualizer {
     fn update(&mut self) {
         let result = capture();
 
@@ -76,7 +76,7 @@ impl Visualizer for RawMonoVisualizer {
         };
 
         let content = if CROSSING_TRIGGER {
-            &RawMonoVisualizer::trigger(&amps, TRIGGER_LEVEL, HORIZONTAL_TRIGGER_POSITION)
+            &MonoVisualizer::trigger(&amps, TRIGGER_LEVEL, HORIZONTAL_TRIGGER_POSITION)
         } else {
             &amps
         };

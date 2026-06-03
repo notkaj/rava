@@ -5,10 +5,10 @@ use ratatui::widgets::{
 
 use crate::{
     ui::popup::Popup,
-    visualizer::{Visualizer, raw::RawMonoVisualizer},
+    visualizer::{Visualizer, waveform::MonoVisualizer},
 };
 
-impl WidgetRef for RawMonoVisualizer {
+impl WidgetRef for MonoVisualizer {
     fn render_ref(&self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer) {
         let amps = self.output();
 
