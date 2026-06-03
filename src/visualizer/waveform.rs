@@ -15,6 +15,7 @@ pub struct MonoVisualizer {
     pub mode: Mode,
     pub color_index: usize,
     pub scale: f32,
+    pub trigger: Option<Trigger>,
 }
 
 impl Default for MonoVisualizer {
@@ -25,6 +26,7 @@ impl Default for MonoVisualizer {
             mode: Default::default(),
             color_index: Default::default(),
             scale: 10.,
+            trigger: Some(Trigger::new(HORIZONTAL_TRIGGER_POSITION, TRIGGER_LEVEL)),
         }
     }
 }
@@ -46,7 +48,7 @@ impl MonoVisualizer {
         &self.out
     }
 
-    fn trigger(sample: &[f32], trigger_level: f32, htp: f32) -> Vec<f32> {
+    fn trigger(sample: &mut [f32], trigger_level: f32, htp: f32) {
         let n = sample.len();
         let target_index = (n as f32 * htp) as usize;
         let mut trigger_index = target_index;
@@ -59,11 +61,9 @@ impl MonoVisualizer {
 
         let delta_index = trigger_index - target_index;
 
-        let mut res = vec![0.; n];
         for i in 0..n - delta_index {
-            res[i] = sample[i + delta_index];
+            sample[i] = sample[i + delta_index];
         }
-        res
     }
 }
 
@@ -71,17 +71,15 @@ impl Visualizer for MonoVisualizer {
     fn update(&mut self) {
         let result = capture();
 
-        let Ok(amps) = result else {
+        let Ok(mut amps) = result else {
             return;
         };
 
-        let content = if CROSSING_TRIGGER {
-            &MonoVisualizer::trigger(&amps, TRIGGER_LEVEL, HORIZONTAL_TRIGGER_POSITION)
-        } else {
-            &amps
-        };
-        // find zero-crossing
-        let n = content.len();
+        if let Some(t) = &self.trigger {
+            MonoVisualizer::trigger(&mut amps, t.level, t.horizontal_position);
+        }
+
+        let n = amps.len();
 
         let ranges = self.out.len();
         let range_len = max(1, n / ranges);
@@ -92,7 +90,7 @@ impl Visualizer for MonoVisualizer {
             if start >= n {
                 break;
             }
-            let sum = content[start..end].iter().sum::<f32>();
+            let sum = amps[start..end].iter().sum::<f32>();
             let len = (end - start) as f32;
             let avg = if len > 0. { sum / len } else { 0. };
             self.out[i] = f64::from(avg * self.scale);
@@ -167,5 +165,19 @@ impl Visualizer for MonoVisualizer {
 
     fn set_mode(&mut self, mode: Mode) {
         self.mode = mode
+    }
+}
+
+pub struct Trigger {
+    pub horizontal_position: f32,
+    pub level: f32,
+}
+
+impl Trigger {
+    fn new(htp: f32, level: f32) -> Self {
+        Trigger {
+            horizontal_position: htp,
+            level,
+        }
     }
 }
